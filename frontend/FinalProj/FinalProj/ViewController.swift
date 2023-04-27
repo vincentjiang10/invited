@@ -1,6 +1,6 @@
 //
 //  ViewController.swift
-//  FinalProj
+//  finalproj
 //
 //  Created by Big Mac on 4/26/23.
 //
