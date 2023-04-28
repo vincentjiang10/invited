@@ -1,6 +1,7 @@
+from marshmallow import fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from app.models import User, Event, RecipientList
-
+    
 class UserSchema(SQLAlchemyAutoSchema):
     """
     A Marshmallow schema that is used to validate input data and serialize/deserialize
@@ -12,6 +13,10 @@ class UserSchema(SQLAlchemyAutoSchema):
         # (In the case of updates)
         load_instance = True
 
+    id = fields.Integer(dump_only=True)
+    first_name = fields.String(required=True)
+    last_name = fields.String(required=True)
+
 class EventSchema(SQLAlchemyAutoSchema):
     """
     A Marshmallow schema that is used to validate input data and serialize/deserialize
@@ -21,6 +26,11 @@ class EventSchema(SQLAlchemyAutoSchema):
         model = Event
         load_instance = True
 
+    id = fields.Integer(dump_only=True)
+    name = fields.String(required=True)
+    creator_id = fields.Integer(required=True)
+    # TODO: Add other columns
+
 class RecipientListSchema(SQLAlchemyAutoSchema):
     """
     A Marshmallow schema that is used to validate input data and serialize/deserialize
@@ -29,3 +39,8 @@ class RecipientListSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = RecipientList
         load_instance = True
+
+    id = fields.Integer(dump_only=True)
+    title = fields.String(required=True)
+    creator_id = fields.String(required=True)
+    users = fields.Nested(UserSchema, many=True)
