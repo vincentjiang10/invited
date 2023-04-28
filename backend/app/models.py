@@ -5,7 +5,7 @@ class User(db.Model):
     User model (One-to-many relation to Recipient lists)
     """
     
-    __tablename__ = "user"    
+    __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     first_name = db.Column(db.String, nullable=False)
     last_name = db.Column(db.String, nullable=False)
@@ -21,7 +21,7 @@ class User(db.Model):
         """
         Initializes a Course object
         """
-
+        
         self.first_name = kwargs.get("first_name", "")
         self.last_name = kwargs.get("last_name", "")
         self.email = kwargs.get("email", "")
