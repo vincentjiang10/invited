@@ -32,11 +32,11 @@ class EventDetailViewController: UIViewController {
         view.backgroundColor = .white
         
         title = "Event Details"
-        navigationController?.navigationBar.titleTextAttributes = [ NSAttributedString.Key.foregroundColor : UIColor.white]
+        navigationController?.navigationBar.titleTextAttributes = [ NSAttributedString.Key.foregroundColor : UIColor.black]
         navigationController?.navigationBar.backgroundColor = UIColor.clear
         navigationController?.setNavigationBarHidden(false, animated: true)
 
-        back = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(goBack))
+        back = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(goBack))
         navigationItem.leftBarButtonItem = back
         
         eventName.text = "Event"
@@ -58,7 +58,7 @@ class EventDetailViewController: UIViewController {
     func setupConstraints() {
         NSLayoutConstraint.activate([
             eventName.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            eventName.topAnchor.constraint(equalTo: view.bottomAnchor, constant: 45),
+            eventName.topAnchor.constraint(equalTo: view.topAnchor, constant: 120),
             eventName.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
         ])
         
