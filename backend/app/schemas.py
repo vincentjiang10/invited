@@ -16,10 +16,10 @@ class UserSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
     id = fields.Integer(dump_only=True)
-    first_name = fields.String(required=True)
-    last_name = fields.String(required=True)
-    email = fields.String(required=True)
-    password_digest = fields.String(required=True)
+    first_name = fields.String(load_only=True)
+    last_name = fields.String(load_only=True)
+    email = fields.String(load_only=True)
+    password_digest = fields.String(load_only=True)
     session_token = fields.String(dump_only=True)
     session_expiration = fields.String(dump_only=True)
     update_token = fields.String(dump_only=True)

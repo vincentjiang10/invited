@@ -1,5 +1,5 @@
 import json
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 from app.views import failure_response, success_response
 from app.dao import event_dao, recipient_list_dao, user_dao
 from app.auth import encrypt_password
@@ -37,12 +37,24 @@ def register_account():
     return user_dao.create_user(body)
 
 
+def extract_token(request_headers):
+    """
+    Helper function to extract token from header
+    """
+    auth_header = request_headers.get("Authorization")
+    if auth_header is None:
+        return failure_response({"error": "Missing auth header"})
+    bearer_token = auth_header.replace("Bearer", "").strip()
+    if not bearer_token:
+        return failure_response({"error": "Invalid auth header"}, 400)
+    return success_response({"bearer_token": bearer_token})
+
+
 @api_bp.route("/login/", methods=["POST"])
 def login():
     """
     Endpoint for logging a user in using username and password
     """
-
     body = json.loads(request.data)
 
     return user_dao.verify_credentials(body)
@@ -53,8 +65,26 @@ def logout():
     """
     Endpoint for logging a user out using username and password
     """
+    token_response, code = extract_token(request.headers)
+    if code != 200:
+        return token_response
+    session_token = json.loads(token_response)["bearer_token"]
 
-    pass
+    return user_dao.get_user_by_session_token(session_token, expire_session=True)
+
+
+@api_bp.route("/secret/", methods=["POST"])
+def secret_message():
+    """
+    Endpoint for verifying session token and returning a secret message
+    """
+    token_response, code = extract_token(request.headers)
+    if code != 200:
+        return token_response
+    # Get session token
+    session_token = json.loads(token_response)["bearer_token"]
+
+    return user_dao.get_user_by_session_token(session_token)
 
 
 @api_bp.route("/session/", methods=["POST"])
@@ -62,5 +92,10 @@ def update_session():
     """
     Endpoint for updating a user's session
     """
+    token_response, code = extract_token(request.headers)
+    if code != 200:
+        return token_response
+    # Get session token
+    update_token = json.loads(token_response)["bearer_token"]
 
-    pass
+    return user_dao.get_user_by_update_token(update_token, renew_session=True)

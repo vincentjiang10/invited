@@ -20,6 +20,20 @@ class UserAuthentication:
         """
         return self.user.session_token == session_token
 
+    def verify_session_expiration(self, current_time):
+        """
+        Verifies whether or not session has expired
+        """
+        return self.user.session_expiration > current_time
+
+    def verify_session(self, session_token):
+        """
+        Verifies session
+        """
+        return self.verify_session_token(
+            session_token
+        ) and self.verify_session_expiration(dt.datetime.now())
+
     def verify_update_token(self, update_token):
         """
         Verifies update token
@@ -35,6 +49,13 @@ def _urlsafe_base_64():
     Generates randomly hashed tokens used (for session and update tokens)
     """
     return hashlib.sha1(os.urandom(64)).hexdigest()
+
+
+def new_session_time():
+    """
+    Returns the new time of the user
+    """
+    return dt.datetime.now()
 
 
 def new_session_info():
@@ -56,11 +77,3 @@ def encrypt_password(user_password):
     Encrypts user password
     """
     return bcrypt.hashpw(user_password.encode("utf8"), bcrypt.gensalt())
-
-
-def extract_token():
-    """
-    Helper function to extract token from header
-    """
-
-    pass
