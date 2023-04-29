@@ -1,23 +1,19 @@
 import json
 from flask import Blueprint, jsonify, request
+from app.views import failure_response, success_response
 from app.dao import event_dao, recipient_list_dao, user_dao
 from app.auth import encrypt_password
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 
-def success_response(data, code=200):
+@api_bp.route("/")
+def hello():
     """
-    General success response
+    Default (test) endpoint
     """
-    return json.dumps(data), code
 
-
-def failure_response(message, code=404):
-    """
-    General failure response
-    """
-    return json.dumps({"error": message}), code
+    return success_response({"message": "Hurray!!"})
 
 
 @api_bp.route("/register/", methods=["POST"])
@@ -27,28 +23,18 @@ def register_account():
     """
 
     # Load request data into python dictionary
-    data = json.loads(request.data)
-
-    # Check to see whether duplicate email exists
-    user_email = data.get("email")
-    existing_user = user_dao.get_user_by_email(user_email)
-    if existing_user is not None:
-        return failure_response({"error": "User already exists"}, 400)
+    body = json.loads(request.data)
 
     # We change and transform user password to password digest because we do not want to store actual password in database
-    user_password = data.get("password")
+    user_password = body.get("password")
     if user_password is None:
         return failure_response({"error": "Missing or invalid password"}, 400)
     user_password_digest = encrypt_password(user_password)
 
     # Set password digest
-    data["password_digest"] = user_password_digest
+    body["password_digest"] = user_password_digest
 
-    serialized_user = user_dao.create_user(data)
-    if serialized_user is None:
-        return failure_response({"error": "Database access error"}, 400)
-
-    return success_response(serialized_user)
+    return user_dao.create_user(body)
 
 
 @api_bp.route("/login/", methods=["POST"])
@@ -57,7 +43,9 @@ def login():
     Endpoint for logging a user in using username and password
     """
 
-    pass
+    body = json.loads(request.data)
+
+    return user_dao.verify_credentials(body)
 
 
 @api_bp.route("/logout/", methods=["POST"])
