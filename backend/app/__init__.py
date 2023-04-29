@@ -2,13 +2,15 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from app.config import Config
-from app.views.api import api_bp
 
 # Init db
 db = SQLAlchemy()
 
 # Init ma
 ma = Marshmallow()
+
+from app.views.api import api_bp
+
 
 def create_app() -> Flask:
     """
