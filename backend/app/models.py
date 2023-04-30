@@ -2,21 +2,6 @@ from app import db
 
 
 # -------------------------- Associations --------------------------#
-# Association objects
-class Friendship(db.Model):
-    """
-    Represents many-to-many friendship relationship between users
-    """
-
-    __tablename__ = "friendship"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id_1 = db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
-    user_id_2 = db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
-    status = db.Column(db.String)
-
-    # TODO: Add back_populates columns
-
-
 class UserRecipientList(db.Model):
     """
     Represents many-to-many relationship between user and recipient lists
@@ -31,7 +16,7 @@ class UserRecipientList(db.Model):
     role = db.Column(db.String)
 
     user = db.relationship("User", back_populates="recipient_lists")
-    recipient_list = db.relationship("Recipient_List", back_populates="users")
+    recipient_list = db.relationship("RecipientList", back_populates="users")
 
 
 class UserEvent(db.Model):

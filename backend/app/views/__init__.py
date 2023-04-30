@@ -8,8 +8,8 @@ def success_response(data, code=200):
     return json.dumps(data), code
 
 
-def failure_response(message, code=404):
+def failure_response(data, code=404):
     """
     General failure response
     """
-    return json.dumps({"error": message}), code
+    return json.dumps(data), code
