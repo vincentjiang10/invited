@@ -24,16 +24,12 @@ def failure_response(data, code=400):
     return json.dumps(data), code
 
 
-# Initialize schemas
+# ------------------------- User Authentication ---------------------------#
+# Initialize schemas for deserialization and serialization
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
-event_schema = EventSchema()
-events_schema = EventSchema(many=True)
-recipient_list_schema = RecipientListSchema()
-recipient_lists_schema = RecipientListSchema(many=True)
 
 
-# ------------------------- User Authentication ---------------------------#
 @api_bp.route("/")
 def hello():
     """
@@ -73,12 +69,12 @@ def register_account():
     except ValidationError as _:
         return failure_response({"error": "Missing or invalid email or name"})
 
-    data_response, code = user_dao.create_user(user)
+    user_response, code = user_dao.create_user(user)
     if code != 201:
-        return failure_response(data_response, code)
+        return failure_response(user_response, code)
 
     # Serialize user
-    user_serialized = user_schema.dump(data_response)
+    user_serialized = user_schema.dump(user_response)
 
     return success_response(user_serialized, 201)
 
@@ -89,11 +85,11 @@ def extract_token(request_headers):
     """
     auth_header = request_headers.get("Authorization")
     if auth_header is None:
-        return failure_response({"error": "Missing auth header"})
+        return {"error": "Missing auth header"}, 404
     bearer_token = auth_header.replace("Bearer", "").strip()
     if not bearer_token:
-        return failure_response({"error": "Invalid auth header"})
-    return success_response({"bearer_token": bearer_token})
+        return {"error": "Invalid auth header"}, 400
+    return bearer_token, 200
 
 
 @api_bp.route("/users/login/", methods=["POST"])
@@ -103,12 +99,12 @@ def login():
     """
     body = json.loads(request.data)
 
-    data_response, code = user_dao.verify_credentials(body)
+    user_response, code = user_dao.verify_credentials(body)
     if code != 200:
-        return failure_response(data_response, code)
+        return failure_response(user_response, code)
 
     # Serialize user
-    user_serialized = user_schema.dump(data_response)
+    user_serialized = user_schema.dump(user_response)
 
     return success_response(user_serialized)
 
@@ -120,14 +116,14 @@ def logout():
     """
     token_response, code = extract_token(request.headers)
     if code != 200:
-        return token_response
-    session_token = json.loads(token_response)["bearer_token"]
+        return failure_response(token_response, code)
+    session_token = token_response
 
-    data_reponse, code = user_dao.get_user_by_session_token(
+    user_reponse, code = user_dao.get_user_by_session_token(
         session_token, expire_session=True
     )
     if code != 200:
-        return data_reponse, code
+        return user_reponse, code
 
     return success_response({"message": "Sucessfully logged out"})
 
@@ -139,13 +135,12 @@ def secret_message():
     """
     token_response, code = extract_token(request.headers)
     if code != 200:
-        return token_response
-    # Get session token
-    session_token = json.loads(token_response)["bearer_token"]
+        return failure_response(token_response, code)
+    session_token = token_response
 
-    data_reponse, code = user_dao.get_user_by_session_token(session_token)
+    user_reponse, code = user_dao.get_user_by_session_token(session_token)
     if code != 200:
-        return data_reponse, code
+        return user_reponse, code
 
     return success_response({"message": "Wow, what a cool secret message"})
 
@@ -157,42 +152,47 @@ def update_session():
     """
     token_response, code = extract_token(request.headers)
     if code != 200:
-        return token_response
-    # Get session token
-    update_token = json.loads(token_response)["bearer_token"]
+        return failure_response(token_response, code)
+    update_token = token_response
 
-    data_response, code = user_dao.get_user_by_update_token(
+    user_response, code = user_dao.get_user_by_update_token(
         update_token, renew_session=True
     )
     if code != 200:
-        return failure_response(data_response, code)
+        return failure_response(user_response, code)
 
-    user_serialized = user_schema.dump(data_response)
+    user_serialized = user_schema.dump(user_response)
 
     return success_response(user_serialized)
 
 
 # ------------------------- User Events ---------------------------#
+event_schema = EventSchema()
+events_schema = EventSchema(many=True)
 
 
-# TODO: Can have a different schema than individual events
-# TODO: Fix routes to start with events!
+# TODO: Can have a different schema than individual events (Where additional information can be revealed)
 @api_bp.route("/events/from/users/")
 def get_events_created_by_user_by_token():
     """
     Endpoint for getting all events that has been created by the current user
     """
+    token_response, code = extract_token(request.headers)
+    if code != 200:
+        return failure_response(token_response, code)
+    session_token = token_response
 
+    events_response, code = event_dao.get_events_from_user_by_session(session_token)
+    if code != 200:
+        return failure_response(events_response, code)
 
-@api_bp.route("/events/from/users/", methods=["POST"])
-def create_event_by_token():
-    """
-    Endpoint for creating an event by the current user
-    """
+    events_serialized = events_schema.dump(events_response)
+
+    return success_response(events_serialized, 200)
 
 
 @api_bp.route("/events/<int:event_id>/from/users/")
-def get_event_created_by_token(event_id):
+def get_event_created_by_user_by_token(event_id):
     """
     Endpoint for getting a specific event that has been created by the current user
     """
@@ -203,6 +203,18 @@ def get_events_invited_to_user_by_token():
     """
     Endpoint for getting all events that has been received by the current user
     """
+    token_response, code = extract_token(request.headers)
+    if code != 200:
+        return failure_response(token_response, code)
+    session_token = token_response
+
+    events_response, code = event_dao.get_events_to_user_by_session(session_token)
+    if code != 200:
+        return failure_response(events_response, code)
+
+    events_serialized = events_schema.dump(events_response)
+
+    return success_response(events_serialized, 200)
 
 
 @api_bp.route("/events/<int:event_id>/to/users/")
@@ -218,6 +230,11 @@ def get_user_to_public_events():
     Endpoint for getting all public events
     """
 
+@api_bp.route("/events/from/users/", methods=["POST"])
+def create_event_by_token():
+    """
+    Endpoint for creating an event by the current user
+    """
 
 @api_bp.route(
     "/events/<int:event_id>/from/users/<string:user_email>/", methods=["POST"]
@@ -235,3 +252,10 @@ def delete_user_from_event(event_id, user_email):
     """
     Endpoint for removing a user from an event by email
     """
+
+
+# ----------------------------- Recipient Lists -----------------------------#
+recipient_list_schema = RecipientListSchema()
+recipient_lists_schema = RecipientListSchema(many=True)
+
+# TODO: Finish

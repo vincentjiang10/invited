@@ -57,11 +57,9 @@ class User(db.Model):
 
     # Define many-to-many relationships
     event_association = db.relationship("UserEvent", back_populates="user")
-    events = association_proxy("event_association", "event")
     recipient_list_association = db.relationship(
         "UserRecipientList", back_populates="user"
     )
-    recipient_lists = association_proxy("recipient_list_association", "recipient_list")
 
     def __init__(self, **kwargs):
         """
@@ -82,9 +80,9 @@ class Event(db.Model):
     __tablename__ = "event"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
+    location = db.Column(db.String)
 
     user_association = db.relationship("UserEvent", back_populates="event")
-    users = association_proxy("user_association", "user")
 
     def __init__(self, **kwargs):
         """
@@ -111,8 +109,6 @@ class RecipientList(db.Model):
     user_association = db.relationship(
         "UserRecipientList", back_populates="recipient_list"
     )
-    # Define proxy to bypass intermediate transaction with a UserRecipientList association object
-    users = association_proxy("user_association", "user")
 
     def __init__(self, **kwargs):
         """
