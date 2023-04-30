@@ -37,8 +37,7 @@ class EventSchema(SQLAlchemyAutoSchema):
 
     id = fields.Integer(dump_only=True)
     name = fields.String(required=True)
-    creator_id = fields.Integer(required=True)
-    # TODO: Add other columns
+    users = fields.Nested(UserSchema, many=True)
 
 
 class RecipientListSchema(SQLAlchemyAutoSchema):
@@ -53,5 +52,4 @@ class RecipientListSchema(SQLAlchemyAutoSchema):
 
     id = fields.Integer(dump_only=True)
     title = fields.String(required=True)
-    creator_id = fields.String(required=True)
     users = fields.Nested(UserSchema, many=True)
