@@ -1,30 +1,32 @@
-from app.schemas import EventSchema
 from app.models import Event
 from app import db
 
-event_schema = EventSchema()
-events_schema = EventSchema(many=True)
 
-
-def get_events_by_creator_id(user_id):
+def get_events_to_user_by_session(session_token):
     """
-    Get all events that were created by user
+    Get all events created by authorized user with session token
     """
+    
 
 
-def get_events_by_recipient_id(user_id):
+def get_events_from_user_by_session(session_token):
     """
-    Get all events that have user invited
+    Get all events invited to authorized user with session token
     """
 
 
-def create_event(body):
+def create_event_by_session(session_token):
     """
-    Create the event
+    Create an event 
     """
 
-
-def add_user_to_event_by_id(user_id, event_id):
+# TODO: Add logic and check whether invited user is a friend before proceeding?
+def add_user_to_event_by_email(event_id, user_email):
     """
-    Add a user to an event
+    Add a user to an event through email
+    """
+    
+def remove_user_from_event_by_email(event_id, user_email):
+    """
+    Remove a user from an event through email
     """
