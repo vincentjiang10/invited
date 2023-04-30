@@ -38,7 +38,12 @@ class ViewController: UIViewController {
 
         view.backgroundColor = .white
         
-        events = [(Event(eventName: "Picnic", eventDate: "01/01/23", eventDescription: "Picnic with everyone!"))]
+        events = [
+            (Event(eventName: "Picnic", eventDate: "05/05/23", eventDescription: "Picnic with everyone!")),
+            (Event(eventName: "Dance Party", eventDate: "05/06/23", eventDescription: "Disco dance party in Willard")),
+            (Event(eventName: "Basketball Game", eventDate: "05/06/23", eventDescription: "Cornell v.s. Princeton. Come join and cheer on the team! Free shirts given too <3"))
+            
+        ]
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.delegate = self
@@ -162,13 +167,21 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             
             cell.updateFrom(event: currentEvent)
             
-            
             return cell
             
         } else {
             return UITableViewCell()
         }
 
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.row == 0 {
+            // First cell should be taller
+            return 120
+        } else {
+            return 110
+        }
     }
     
     func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {

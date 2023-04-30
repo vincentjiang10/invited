@@ -8,15 +8,13 @@
 import Foundation
 import UIKit
 
-class Event {
+struct Event: Codable  {
     var eventName: String
     var eventDate: String
     var eventDescription: String
     
-    init(eventName: String, eventDate: String, eventDescription: String) {
-        self.eventName = eventName
-        self.eventDate = eventDate
-        self.eventDescription = eventDescription
-    }
-    
+}
+
+struct EventResponse: Codable {
+    var events: [Event]
 }
