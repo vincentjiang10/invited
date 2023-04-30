@@ -7,7 +7,7 @@ from app.auth import encrypt_password
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 
-@api_bp.route("/")
+@api_bp.route("")
 def hello():
     """
     Default (test) endpoint
@@ -16,7 +16,7 @@ def hello():
     return success_response({"message": "Hurray!!"})
 
 
-@api_bp.route("/register/", methods=["POST"])
+@api_bp.route("/user/register/", methods=["POST"])
 def register_account():
     """
     Endpoint for registering an account
@@ -50,7 +50,7 @@ def extract_token(request_headers):
     return success_response({"bearer_token": bearer_token})
 
 
-@api_bp.route("/login/", methods=["POST"])
+@api_bp.route("/user/login/", methods=["POST"])
 def login():
     """
     Endpoint for logging a user in using username and password
@@ -60,7 +60,7 @@ def login():
     return user_dao.verify_credentials(body)
 
 
-@api_bp.route("/logout/", methods=["POST"])
+@api_bp.route("/user/logout/", methods=["POST"])
 def logout():
     """
     Endpoint for logging a user out using username and password
@@ -79,7 +79,7 @@ def logout():
     return success_response({"message": "Sucessfully logged out"})
 
 
-@api_bp.route("/secret/", methods=["POST"])
+@api_bp.route("/user/secret/", methods=["POST"])
 def secret_message():
     """
     Endpoint for verifying session token and returning a secret message
@@ -97,7 +97,7 @@ def secret_message():
     return success_response({"message": "Wow, what a cool secret message"})
 
 
-@api_bp.route("/session/", methods=["POST"])
+@api_bp.route("/user/session/", methods=["POST"])
 def update_session():
     """
     Endpoint for updating a user's session
@@ -109,3 +109,10 @@ def update_session():
     update_token = json.loads(token_response)["bearer_token"]
 
     return user_dao.get_user_by_update_token(update_token, renew_session=True)
+
+
+@api_bp.route("/user/<int:user_id>/events/")
+def get_user_events_by_id(user_id):
+    """
+    Endpoint for getting all events that has been created by user with user_id
+    """

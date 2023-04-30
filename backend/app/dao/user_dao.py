@@ -29,7 +29,7 @@ def _renew_session(user):
     )
 
 
-def _get_user_by_email(email):
+def get_user_by_email(email):
     """
     Returns user by email, None if user is not in database
     """
@@ -90,7 +90,7 @@ def create_user(body):
 
     # Check to see whether user with the same email already exists
     user_email = body.get("email")
-    existing_user = _get_user_by_email(user_email)
+    existing_user = get_user_by_email(user_email)
     if existing_user is not None:
         return failure_response({"error": "User already exists"}, 400)
 
@@ -118,7 +118,7 @@ def verify_credentials(body):
 
     # Check to whether a user with the same email exists
     user_email = body.get("email")
-    existing_user = _get_user_by_email(user_email)
+    existing_user = get_user_by_email(user_email)
     if existing_user is None:
         return failure_response({"error": "User not found"})
 
