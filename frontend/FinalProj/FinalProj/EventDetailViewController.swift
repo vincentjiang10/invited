@@ -149,5 +149,5 @@ class EventDetailViewController: UIViewController {
 }
 
 protocol updateCell: UIViewController {
-    func updates(eventName: String, eventDate: String)
+    func updates(eventName: String, eventDate: String, eventDescrip: String)
 }
