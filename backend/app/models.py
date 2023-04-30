@@ -61,16 +61,6 @@ class User(db.Model):
         "UserRecipientList", back_populates="user"
     )
 
-    def __init__(self, **kwargs):
-        """
-        Initializes a Course object
-        """
-
-        self.first_name = kwargs.get("first_name")
-        self.last_name = kwargs.get("last_name")
-        self.email = kwargs.get("email")
-        self.password_digest = kwargs.get("password_digest")
-
 
 class Event(db.Model):
     """
@@ -80,17 +70,9 @@ class Event(db.Model):
     __tablename__ = "event"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
-    location = db.Column(db.String)
+    location = db.Column(db.String, nullable=True)
 
     user_association = db.relationship("UserEvent", back_populates="event")
-
-    def __init__(self, **kwargs):
-        """
-        Initializes an event object
-        """
-
-        self.name = kwargs.get("name")
-        self.creator_id = kwargs.get("creator_id")
 
 
 class RecipientList(db.Model):
@@ -109,14 +91,6 @@ class RecipientList(db.Model):
     user_association = db.relationship(
         "UserRecipientList", back_populates="recipient_list"
     )
-
-    def __init__(self, **kwargs):
-        """
-        Initializes an recipient list object
-        """
-
-        self.title = kwargs.get("title")
-        self.creator_id = kwargs.get("creator_id")
 
 
 # TODO: Community model? Implement events in a community, which can be assessed and seen by only users within that community? Can be public or more specific

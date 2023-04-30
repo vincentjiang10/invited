@@ -177,25 +177,21 @@ def get_events_created_by_user_by_token():
     """
     Endpoint for getting all events that has been created by the current user
     """
+    # Get token
     token_response, code = extract_token(request.headers)
     if code != 200:
         return failure_response(token_response, code)
     session_token = token_response
 
+    # Get events
     events_response, code = event_dao.get_events_from_user_by_session(session_token)
     if code != 200:
         return failure_response(events_response, code)
 
+    # Serialization
     events_serialized = events_schema.dump(events_response)
 
     return success_response(events_serialized, 200)
-
-
-@api_bp.route("/events/<int:event_id>/from/users/")
-def get_event_created_by_user_by_token(event_id):
-    """
-    Endpoint for getting a specific event that has been created by the current user
-    """
 
 
 @api_bp.route("/events/to/users/")
@@ -217,24 +213,40 @@ def get_events_invited_to_user_by_token():
     return success_response(events_serialized, 200)
 
 
-@api_bp.route("/events/<int:event_id>/to/users/")
-def get_event_invited_to_user_by_token(event_id):
-    """
-    Endpoint for getting a specific event that has been received by the current user
-    """
-
-
+# TODO
 @api_bp.route("/events/public/to/users/")
 def get_user_to_public_events():
     """
     Endpoint for getting all public events
     """
 
+
 @api_bp.route("/events/from/users/", methods=["POST"])
 def create_event_by_token():
     """
     Endpoint for creating an event by the current user
     """
+    token_response, code = extract_token(request.headers)
+    if code != 200:
+        return failure_response(token_response, code)
+    session_token = token_response
+
+    body = json.loads(request.data)
+    try:
+        # event is of instance Event
+        event = event_schema.load(body, unknown=EXCLUDE, session=db.session)
+    except ValidationError as _:
+        return failure_response({"error": "Missing event name"})
+
+    event_response, code = event_dao.create_event_by_session(event, session_token)
+    if code != 201:
+        return failure_response(event_response, code)
+
+    # Serialize event
+    event_serialized = event_schema.dump(event_response)
+
+    return success_response(event_serialized, 201)
+
 
 @api_bp.route(
     "/events/<int:event_id>/from/users/<string:user_email>/", methods=["POST"]
