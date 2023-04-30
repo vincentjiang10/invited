@@ -47,7 +47,7 @@ class User(db.Model):
     first_name = db.Column(db.String, nullable=False)
     last_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
-    password_digest = db.Column(db.String, nullable=False)
+    password_digest = db.Column(db.LargeBinary, nullable=False)
 
     # Session information
     session_token = db.Column(db.String, nullable=False, unique=True)

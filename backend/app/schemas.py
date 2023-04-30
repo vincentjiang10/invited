@@ -19,7 +19,7 @@ class UserSchema(SQLAlchemyAutoSchema):
     first_name = fields.String(load_only=True)
     last_name = fields.String(load_only=True)
     email = fields.String(load_only=True)
-    password_digest = fields.String(load_only=True)
+    password_digest = fields.Raw(load_only=True)
     session_token = fields.String(dump_only=True)
     session_expiration = fields.String(dump_only=True)
     update_token = fields.String(dump_only=True)

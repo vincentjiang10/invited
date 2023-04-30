@@ -12,7 +12,7 @@ class UserAuthentication:
         """
         Verifies user password
         """
-        return bcrypt.checkpw(self.user.password_digest, password.encode("utf8"))
+        return bcrypt.checkpw(password.encode("utf-8"), self.user.password_digest)
 
     def verify_session_token(self, session_token):
         """
@@ -76,4 +76,5 @@ def encrypt_password(user_password):
     """
     Encrypts user password
     """
-    return bcrypt.hashpw(user_password.encode("utf8"), bcrypt.gensalt())
+
+    return bcrypt.hashpw(user_password.encode("utf-8"), bcrypt.gensalt())

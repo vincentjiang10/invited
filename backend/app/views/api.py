@@ -70,7 +70,13 @@ def logout():
         return token_response
     session_token = json.loads(token_response)["bearer_token"]
 
-    return user_dao.get_user_by_session_token(session_token, expire_session=True)
+    data_reponse, code = user_dao.get_user_by_session_token(
+        session_token, expire_session=True
+    )
+    if code != 200:
+        return data_reponse, code
+
+    return success_response({"message": "Sucessfully logged out"})
 
 
 @api_bp.route("/secret/", methods=["POST"])
@@ -84,7 +90,11 @@ def secret_message():
     # Get session token
     session_token = json.loads(token_response)["bearer_token"]
 
-    return user_dao.get_user_by_session_token(session_token)
+    data_reponse, code = user_dao.get_user_by_session_token(session_token)
+    if code != 200:
+        return data_reponse, code
+
+    return success_response({"message": "Wow, what a cool secret message"})
 
 
 @api_bp.route("/session/", methods=["POST"])

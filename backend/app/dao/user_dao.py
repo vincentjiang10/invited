@@ -78,7 +78,7 @@ def get_user_by_update_token(update_token, renew_session=False):
     # Update session and commit
     if renew_session:
         _renew_session(user)
-    db.session.commit()
+        db.session.commit()
 
     return success_response(user_schema.dump(user))
 
@@ -96,7 +96,7 @@ def create_user(body):
 
     try:
         # user is of instance User
-        user = user_schema.load(body, unknown=EXCLUDE)
+        user = user_schema.load(body, unknown=EXCLUDE, session=db.session)
     except ValidationError as _:
         return failure_response({"error": "Missing or invalid email or name"}, 400)
 
