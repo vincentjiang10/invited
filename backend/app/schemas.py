@@ -37,7 +37,10 @@ class EventSchema(SQLAlchemyAutoSchema):
 
     id = fields.Integer(dump_only=True)
     name = fields.String(required=True)
-    location = fields.String()
+    location = fields.String(required=True)
+    start_time = fields.DateTime(required=True)
+    end_time = fields.DateTime(required=True)
+    description = fields.String(required=True)
 
 
 class RecipientListSchema(SQLAlchemyAutoSchema):

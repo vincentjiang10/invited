@@ -70,7 +70,10 @@ class Event(db.Model):
     __tablename__ = "event"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
-    location = db.Column(db.String, nullable=True)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
+    location = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=False)
 
     user_association = db.relationship("UserEvent", back_populates="event")
 

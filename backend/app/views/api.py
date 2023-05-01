@@ -1,3 +1,4 @@
+from datetime import datetime as dt
 import json
 from flask import Blueprint, request
 from marshmallow import EXCLUDE, ValidationError
@@ -206,6 +207,13 @@ def get_user_to_public_events():
     """
 
 
+# def convert_string_to_datetime(date_string):
+#     """
+#     Deserializes and converts a string representation of date to DateTime
+#     """
+#     return dt.strptime(date_string, "%Y-%m-%d %H:%M:%S")
+
+
 @api_bp.route("/events/from/users/", methods=["POST"])
 def create_event_by_token():
     """
@@ -217,11 +225,12 @@ def create_event_by_token():
     session_token = token_response
 
     body = json.loads(request.data)
+
     try:
         # event is of instance Event
         event = event_schema.load(body, unknown=EXCLUDE, session=db.session)
-    except ValidationError as _:
-        return failure_response({"error": "Missing event name"})
+    except (ValidationError, KeyError) as _:
+        return failure_response({"error": "Missing or invalid required parameters"})
 
     event_response, code = event_dao.create_event_by_session(event, session_token)
     if code != 201:

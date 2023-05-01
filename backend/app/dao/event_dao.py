@@ -77,9 +77,12 @@ def get_events_from_user_by_session(session_token):
         return user_response, code
     user = user_response
 
-    events_from_user_associations = get_all_user_event_associations(
+    associations_response, code = get_all_user_event_associations(
         user_id=user.id, role="creator"
     )
+    if not status_code_ok(code):
+        return associations_response, code
+    events_from_user_associations = associations_response
 
     # Map to events from association
     events_from_user = [
@@ -99,9 +102,13 @@ def get_events_to_user_by_session(session_token):
         return user_response, code
     user = user_response
 
-    events_to_user_associations = get_all_user_event_associations(
+    associations_response, code = get_all_user_event_associations(
         user_id=user.id, role="recipient"
     )
+    if not status_code_ok(code):
+        return associations_response, code
+
+    events_to_user_associations = associations_response
 
     # Map to events from association
     events_to_user = [association.event for association in events_to_user_associations]
@@ -207,3 +214,7 @@ def remove_user_from_event_by_ids(session_token, event_id, user_id):
     db.session.commit()
 
     return user_event, 200
+
+
+# TODO: Add ability to modify event fields (start_time, end_time, location)
+# (A single endpoint here for modification of these fields, since these fields are not connected to other models)
