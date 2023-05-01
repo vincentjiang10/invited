@@ -74,6 +74,7 @@ class Event(db.Model):
     end_time = db.Column(db.DateTime, nullable=False)
     location = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
+    # TODO: Add public private field
 
     user_association = db.relationship("UserEvent", back_populates="event")
 

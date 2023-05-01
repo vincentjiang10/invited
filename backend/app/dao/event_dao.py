@@ -6,6 +6,8 @@ from app.schemas import EventSchema
 from app.models import UserEvent
 from .user_dao import get_user_by_session_token, get_user_by_id
 
+# Initialize schema object
+event_schema = EventSchema()
 
 def get_event_from_association(user_event_association):
     """
@@ -117,11 +119,10 @@ def create_event_by_session(session_token, body):
     Create an event by current user
     """
     try:
-        event_schema = EventSchema()
         # event is of instance Event
         event = event_schema.load(body, unknown=EXCLUDE, session=db.session)
-    except (ValidationError, KeyError) as _:
-        raise DaoException("Missing or invalid required parameters")
+    except ValidationError as exc:
+        raise DaoException("Missing or invalid required parameters") from exc
 
     user = get_user_by_session_token(session_token)
 
@@ -150,8 +151,8 @@ def update_event_from_user_by_session(session_token, event_id, body):
         updated_event = event_schema_of_instance.load(
             body, unknown=EXCLUDE, session=db.session
         )
-    except ValidationError as _:
-        raise DaoException("Missing or invalid required parameters")
+    except ValidationError as exc:
+        raise DaoException("Missing or invalid required parameters") from exc
 
     db.session.commit()
 
