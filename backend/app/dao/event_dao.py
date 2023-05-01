@@ -108,6 +108,15 @@ def get_first_user_event(user_id=None, event_id=None, role=None, access=None):
     return get_event_from_association(user_event_association, access=access)
 
 
+def get_all_public_events():
+    """
+    Get all public events
+    """
+    public_events = get_all_user_events(access="public")
+
+    return public_events
+
+
 def get_events_from_user_by_session(session_token):
     """
     Get all events created by authorized user with session token

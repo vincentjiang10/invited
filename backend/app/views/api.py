@@ -129,6 +129,15 @@ def get_user_to_public_events():
     """
     Endpoint for getting all public events
     """
+    try:
+        public_events = event_dao.get_all_public_events()
+    except DaoException as de:
+        return failure_response(de.message, de.code)
+
+    # Serialization
+    events_serialized = events_schema.dump(public_events)
+
+    return success_response(events_serialized, 200)
 
 
 # TODO: Can have a different schema than individual events (Where additional information can be revealed)
@@ -250,7 +259,20 @@ def delete_user_from_event(event_id):
     return success_response(None, 204)
 
 
-# TODO: Add endpoint to delete all recipients
+@api_bp.route("/events/<int:event_id>/from/users/", methods=["DELETE"])
+def delete_all_recipients_from_event(event_id):
+    """
+    Endpoint for removing all recipients from an event
+    """
+    try:
+        session_token = extract_token(request.headers)
+
+        event_dao.remove_all_recipients_from_event(session_token, event_id)
+    except DaoException as de:
+        return failure_response(de.message, de.code)
+
+    return success_response(None, 204)
+
 
 # ----------------------------- Recipient Lists -----------------------------#
 recipient_list_schema = RecipientListSchema()
