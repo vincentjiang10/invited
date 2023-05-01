@@ -1,10 +1,6 @@
 import json
 
 
-def status_code_ok(code):
-    return code >= 200 and code < 300
-
-
 # General response and status code from requests
 def success_response(data, code=200):
     """
@@ -13,8 +9,8 @@ def success_response(data, code=200):
     return json.dumps(data), code
 
 
-def failure_response(data, code=400):
+def failure_response(message, code=400):
     """
     General failure response
     """
-    return json.dumps(data), code
+    return json.dumps({"error": message}), code

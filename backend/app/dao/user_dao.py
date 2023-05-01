@@ -1,7 +1,14 @@
+from marshmallow import EXCLUDE, ValidationError
 from app import db
 from app.models import User
-from app.auth import UserAuthentication, new_session_info, new_session_time
-from app.views import status_code_ok
+from app.dao import DaoException
+from app.auth import (
+    UserAuthentication,
+    new_session_info,
+    new_session_time,
+    encrypt_password,
+)
+from app.schemas import UserSchema
 
 
 def _expire_session(user):
@@ -22,14 +29,16 @@ def _renew_session(user):
         user_session_info["update_token"],
     )
 
+
 def get_user_by_id(user_id):
     """
     Returns user by email
     """
     user = User.query.filter(User.id == user_id).first()
     if user is None:
-        return {"error": "User not found with id"}, 404
-    return user, 200
+        raise DaoException("User not found with id", 404)
+    return user
+
 
 def get_user_by_email(email):
     """
@@ -38,8 +47,8 @@ def get_user_by_email(email):
 
     user = User.query.filter(User.email == email).first()
     if user is None:
-        return {"error": "User not found with email"}, 404
-    return user, 200
+        raise DaoException("User not found with email", 404)
+    return user
 
 
 def get_user_by_session_token(session_token, expire_session=False):
@@ -48,20 +57,20 @@ def get_user_by_session_token(session_token, expire_session=False):
     """
     user = User.query.filter(User.session_token == session_token).first()
     if user is None:
-        return {"error": "User not found in session"}, 404
+        raise DaoException("User not found in session", 404)
 
     # Create authentication object and bind to existing user
     user_auth = UserAuthentication(user)
     is_user_verified = user_auth.verify_session(session_token)
 
     if not is_user_verified:
-        return {"error": "User verification failed"}, 400
+        raise DaoException("User verification failed")
 
     if expire_session:
         _expire_session(user)
     db.session.commit()
 
-    return user, 200
+    return user
 
 
 def get_user_by_update_token(update_token, renew_session=False):
@@ -77,20 +86,49 @@ def get_user_by_update_token(update_token, renew_session=False):
     is_user_verified = user_auth.verify_update_token(update_token)
 
     if not is_user_verified:
-        return {"error": "User verification failed"}, 400
+        raise DaoException("User verification failed")
 
     # Update session and commit
     if renew_session:
         _renew_session(user)
         db.session.commit()
 
-    return user, 200
+    return user
 
 
-def create_user(user):
+def create_user(body):
     """
-    Create a user given request data, returning a response for the calling api endpoint
+    Create a user given body request data, returning a response for the calling api endpoint
     """
+    # We change and transform user password to password digest because we do not want to store actual password in database
+    user_password = body.get("password")
+    if user_password is None:
+        raise DaoException("Missing or invalid password")
+    user_password_digest = encrypt_password(user_password)
+
+    # Set password digest
+    body["password_digest"] = user_password_digest
+
+    # Check to see whether user with the same email already exists
+    user_email = body.get("email")
+    if user_email is None:
+        raise DaoException("Missing email")
+
+    does_user_exist = True
+    try:
+        _ = get_user_by_email(user_email)
+    except DaoException:
+        does_user_exist = False
+
+    if does_user_exist:
+        raise DaoException("User already exists")
+
+    try:
+        user_schema = UserSchema()
+        # user is of instance User
+        user = user_schema.load(body, unknown=EXCLUDE, session=db.session)
+    except ValidationError as _:
+        raise DaoException("Missing or invalid email or name")
 
     # Renew session and update user state
     _renew_session(user)
@@ -100,7 +138,7 @@ def create_user(user):
     db.session.commit()
 
     # Return serialized user
-    return user, 201
+    return user
 
 
 def verify_credentials(body):
@@ -110,18 +148,18 @@ def verify_credentials(body):
 
     # Check to whether a user with the same email exists
     user_email = body.get("email")
-    existing_user, code = get_user_by_email(user_email)
-    if not status_code_ok(code):
-        return {"error": "User not found by email"}, 404
+    if user_email is None:
+        raise DaoException("Missing email")
+    existing_user = get_user_by_email(user_email)
 
     user_password = body.get("password")
     if user_password is None:
-        return {"error": "Missing password"}, 400
+        raise DaoException("Missing password")
     # Create authentication object and bind to existing user
     user_auth = UserAuthentication(existing_user)
     is_user_verified = user_auth.verify_password(user_password)
 
     if not is_user_verified:
-        return {"error": "Password is incorrect"}, 400
+        raise DaoException("Password is incorrect")
 
-    return existing_user, 200
+    return existing_user

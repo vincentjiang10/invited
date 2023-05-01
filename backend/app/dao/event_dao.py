@@ -1,22 +1,24 @@
+from marshmallow import EXCLUDE, ValidationError
 from sqlalchemy import and_
 from app import db
+from app.dao import DaoException
+from app.schemas import EventSchema
 from app.models import UserEvent
 from .user_dao import get_user_by_session_token, get_user_by_id
-from app.views import status_code_ok
 
 
-def get_user_event_by_id(user, event_id):
+def get_event_from_association(user_event_association):
     """
-    Gets a user-created event by id
+    Get the event in the user event association
     """
-    user_event_association, code = get_first_user_event_association(
-        user_id=user.id, event_id=event_id
-    )
-    if not status_code_ok(code):
-        return user_event_association, code
+    return user_event_association.event
 
-    user_event = user_event_association.event
-    return user_event, 200
+
+def get_events_from_all_associations(user_event_associations):
+    """
+    Get all the events in user event associations
+    """
+    return [association.event for association in user_event_associations]
 
 
 def get_user_event_association_query(user_id=None, event_id=None, role=None):
@@ -48,9 +50,9 @@ def get_first_user_event_association(user_id=None, event_id=None, role=None):
 
     # If no association is found
     if user_event_association is None:
-        return {"error": "Association not found"}, 404
+        raise DaoException("Association not found", 404)
 
-    return user_event_association, 200
+    return user_event_association
 
 
 def get_all_user_event_associations(user_id=None, event_id=None, role=None):
@@ -64,7 +66,28 @@ def get_all_user_event_associations(user_id=None, event_id=None, role=None):
     # Get all associations
     user_event_associations = user_event_association_query.all()
 
-    return user_event_associations, 200
+    return user_event_associations
+
+
+# TODO: Separate arguments into separate construct? Like a type or class?
+def get_all_user_events(user_id=None, event_id=None, role=None):
+    """
+    Get all user events from user event associations that match
+    """
+    user_event_associations = get_all_user_event_associations(
+        user_id=user_id, event_id=event_id, role=role
+    )
+    return get_events_from_all_associations(user_event_associations)
+
+
+def get_first_user_event(user_id=None, event_id=None, role=None):
+    """
+    Get first user event from user event associations that match
+    """
+    user_event_association = get_first_user_event_association(
+        user_id=user_id, event_id=event_id, role=role
+    )
+    return get_event_from_association(user_event_association)
 
 
 def get_events_from_user_by_session(session_token):
@@ -72,24 +95,10 @@ def get_events_from_user_by_session(session_token):
     Get all events created by authorized user with session token
     """
 
-    user_response, code = get_user_by_session_token(session_token)
-    if not status_code_ok(code):
-        return user_response, code
-    user = user_response
+    user = get_user_by_session_token(session_token)
+    events_from_user = get_all_user_events(user_id=user.id, role="creator")
 
-    associations_response, code = get_all_user_event_associations(
-        user_id=user.id, role="creator"
-    )
-    if not status_code_ok(code):
-        return associations_response, code
-    events_from_user_associations = associations_response
-
-    # Map to events from association
-    events_from_user = [
-        association.event for association in events_from_user_associations
-    ]
-
-    return events_from_user, 200
+    return events_from_user
 
 
 def get_events_to_user_by_session(session_token):
@@ -97,34 +106,24 @@ def get_events_to_user_by_session(session_token):
     Get all events invited to authorized user with session token
     """
 
-    user_response, code = get_user_by_session_token(session_token)
-    if not status_code_ok(code):
-        return user_response, code
-    user = user_response
+    user = get_user_by_session_token(session_token)
+    events_to_user = get_all_user_events(user_id=user.id, role="recipient")
 
-    associations_response, code = get_all_user_event_associations(
-        user_id=user.id, role="recipient"
-    )
-    if not status_code_ok(code):
-        return associations_response, code
-
-    events_to_user_associations = associations_response
-
-    # Map to events from association
-    events_to_user = [association.event for association in events_to_user_associations]
-
-    return events_to_user, 200
+    return events_to_user
 
 
-def create_event_by_session(event, session_token):
+def create_event_by_session(session_token, body):
     """
     Create an event by current user
     """
+    try:
+        event_schema = EventSchema()
+        # event is of instance Event
+        event = event_schema.load(body, unknown=EXCLUDE, session=db.session)
+    except (ValidationError, KeyError) as _:
+        raise DaoException("Missing or invalid required parameters")
 
-    user_response, code = get_user_by_session_token(session_token)
-    if not status_code_ok(code):
-        return user_response, code
-    user = user_response
+    user = get_user_by_session_token(session_token)
 
     # Add to UserEvent an association object
     user_event_association = UserEvent(user=user, event=event, role="creator")
@@ -132,7 +131,31 @@ def create_event_by_session(event, session_token):
     db.session.add(user_event_association)
     db.session.commit()
 
-    return event, 201
+    return event
+
+
+def update_event_from_user_by_session(session_token, event_id, body):
+    """
+    Update event by current user
+    """
+    user = get_user_by_session_token(session_token)
+    user_event = get_first_user_event(
+        user_id=user.id, event_id=event_id, role="creator"
+    )
+
+    try:
+        # Pass existing instance
+        event_schema_of_instance = EventSchema(instance=user_event)
+        # event is of instance Event
+        updated_event = event_schema_of_instance.load(
+            body, unknown=EXCLUDE, session=db.session
+        )
+    except ValidationError as _:
+        raise DaoException("Missing or invalid required parameters")
+
+    db.session.commit()
+
+    return updated_event
 
 
 # TODO: Add logic and check whether invited user is a friend before proceeding?
@@ -140,33 +163,31 @@ def add_user_to_event_by_ids(session_token, event_id, target_user_id):
     """
     Add a user to an event through ids
     """
-    user_response, code = get_user_by_session_token(session_token)
-    if not status_code_ok(code):
-        return user_response, code
-    user = user_response
+    user = get_user_by_session_token(session_token)
 
     # Compare to see whether target user is the same as current user
     if user.id == target_user_id:
-        return {"error": "Cannot add current user as recipient"}, 400
+        raise DaoException("Cannot add current user as recipient")
 
     # Check and get event created by current user
-    event_response, code = get_user_event_by_id(user, event_id)
-    if not status_code_ok(code):
-        return event_response, code
-    user_event = event_response
+    user_event = get_first_user_event(
+        user_id=user.id, event_id=event_id, role="creator"
+    )
 
     # Check to see whether target user exists
-    user_response, code = get_user_by_id(target_user_id)
-    if not status_code_ok(code):
-        return user_response, code
-    target_user = user_response
+    target_user = get_user_by_id(target_user_id)
 
     # Check whether event already has user as recipient
-    _, code = get_first_user_event_association(
-        user_id=target_user.id, event_id=user_event.id, role="recipient"
-    )
-    if status_code_ok(code):
-        return {"error": "Recipient already added"}, 400
+    is_user_already_recipient = True
+    try:
+        _ = get_first_user_event(
+            user_id=target_user.id, event_id=user_event.id, role="recipient"
+        )
+    except DaoException:
+        is_user_already_recipient = False
+
+    if is_user_already_recipient:
+        raise DaoException("User is already a recipient")
 
     # New user event association
     new_user_event_association = UserEvent(
@@ -177,7 +198,7 @@ def add_user_to_event_by_ids(session_token, event_id, target_user_id):
     db.session.add(new_user_event_association)
     db.session.commit()
 
-    return user_event, 200
+    return user_event
 
 
 def remove_user_from_event_by_ids(session_token, event_id, user_id):
@@ -185,36 +206,23 @@ def remove_user_from_event_by_ids(session_token, event_id, user_id):
     Remove a user from an event through ids
     """
 
-    user_response, code = get_user_by_session_token(session_token)
-    if not status_code_ok(code):
-        return user_response, code
-    user = user_response
+    user = get_user_by_session_token(session_token)
 
     # Check and get event created by current user
-    event_response, code = get_user_event_by_id(user, event_id)
-    if not status_code_ok(code):
-        return event_response, code
-    user_event = event_response
+    user_event = get_first_user_event(
+        user_id=user.id, event_id=event_id, role="creator"
+    )
 
     # Check to see whether target user exists
-    user_response, code = get_user_by_id(user_id)
-    if not status_code_ok(code):
-        return user_response, code
-    target_user = user_response
+    target_user = get_user_by_id(user_id)
 
     # Check to see whether an association exists with target user as a recipient of user event
-    target_user_event_association, code = get_first_user_event_association(
+    target_user_event_association = get_first_user_event_association(
         user_id=target_user.id, event_id=user_event.id, role="recipient"
     )
-    if not status_code_ok(code):
-        return target_user_event_association, code
 
     # Delete association and commit to database
     db.session.delete(target_user_event_association)
     db.session.commit()
 
-    return user_event, 200
-
-
-# TODO: Add ability to modify event fields (start_time, end_time, location)
-# (A single endpoint here for modification of these fields, since these fields are not connected to other models)
+    return user_event
