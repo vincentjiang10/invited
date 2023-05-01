@@ -2,27 +2,12 @@ import json
 from flask import Blueprint, request
 from marshmallow import EXCLUDE, ValidationError
 from app import db
+from app.views import status_code_ok, success_response, failure_response
 from app.dao import event_dao, recipient_list_dao, user_dao
 from app.schemas import UserSchema, EventSchema, RecipientListSchema
 from app.auth import encrypt_password
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
-
-
-# General response and status code from requests
-def success_response(data, code=200):
-    """
-    General success response
-    """
-    return json.dumps(data), code
-
-
-def failure_response(data, code=400):
-    """
-    General failure response
-    """
-    return json.dumps(data), code
-
 
 # ------------------------- User Authentication ---------------------------#
 # Initialize schemas for deserialization and serialization
@@ -60,7 +45,7 @@ def register_account():
     # Check to see whether user with the same email already exists
     user_email = body.get("email")
     _, code = user_dao.get_user_by_email(user_email)
-    if code == 200:
+    if status_code_ok(code):
         return failure_response({"error": "User already exists"})
 
     try:
@@ -100,7 +85,7 @@ def login():
     body = json.loads(request.data)
 
     user_response, code = user_dao.verify_credentials(body)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(user_response, code)
 
     # Serialize user
@@ -115,14 +100,14 @@ def logout():
     Endpoint for logging a user out using username and password
     """
     token_response, code = extract_token(request.headers)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(token_response, code)
     session_token = token_response
 
     user_reponse, code = user_dao.get_user_by_session_token(
         session_token, expire_session=True
     )
-    if code != 200:
+    if not status_code_ok(code):
         return user_reponse, code
 
     return success_response({"message": "Sucessfully logged out"})
@@ -134,12 +119,12 @@ def secret_message():
     Endpoint for verifying session token and returning a secret message
     """
     token_response, code = extract_token(request.headers)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(token_response, code)
     session_token = token_response
 
     user_reponse, code = user_dao.get_user_by_session_token(session_token)
-    if code != 200:
+    if not status_code_ok(code):
         return user_reponse, code
 
     return success_response({"message": "Wow, what a cool secret message"})
@@ -151,14 +136,14 @@ def update_session():
     Endpoint for updating a user's session
     """
     token_response, code = extract_token(request.headers)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(token_response, code)
     update_token = token_response
 
     user_response, code = user_dao.get_user_by_update_token(
         update_token, renew_session=True
     )
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(user_response, code)
 
     user_serialized = user_schema.dump(user_response)
@@ -179,13 +164,13 @@ def get_events_created_by_user_by_token():
     """
     # Get token
     token_response, code = extract_token(request.headers)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(token_response, code)
     session_token = token_response
 
     # Get events
     events_response, code = event_dao.get_events_from_user_by_session(session_token)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(events_response, code)
 
     # Serialization
@@ -200,12 +185,12 @@ def get_events_invited_to_user_by_token():
     Endpoint for getting all events that has been received by the current user
     """
     token_response, code = extract_token(request.headers)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(token_response, code)
     session_token = token_response
 
     events_response, code = event_dao.get_events_to_user_by_session(session_token)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(events_response, code)
 
     events_serialized = events_schema.dump(events_response)
@@ -227,7 +212,7 @@ def create_event_by_token():
     Endpoint for creating an event by the current user
     """
     token_response, code = extract_token(request.headers)
-    if code != 200:
+    if not status_code_ok(code):
         return failure_response(token_response, code)
     session_token = token_response
 
@@ -248,22 +233,46 @@ def create_event_by_token():
     return success_response(event_serialized, 201)
 
 
-@api_bp.route(
-    "/events/<int:event_id>/from/users/<string:user_email>/", methods=["POST"]
-)
-def add_user_to_event(event_id, user_email):
+@api_bp.route("/events/<int:event_id>/from/users/<int:user_id>/", methods=["POST"])
+def add_user_to_event(event_id, user_id):
     """
     Endpoint for adding a user to an event by email
     """
+    token_response, code = extract_token(request.headers)
+    if not status_code_ok(code):
+        return failure_response(token_response, code)
+    session_token = token_response
+
+    event_response, code = event_dao.add_user_to_event_by_ids(
+        session_token, event_id, user_id
+    )
+    if not status_code_ok(code):
+        return failure_response(event_response, code)
+
+    event_serialized = event_schema.dump(event_response)
+
+    return success_response(event_serialized, 200)
 
 
-@api_bp.route(
-    "/events/<int:event_id>/from/users/<string:user_email>/", methods=["DELETE"]
-)
-def delete_user_from_event(event_id, user_email):
+@api_bp.route("/events/<int:event_id>/from/users/<int:user_id>/", methods=["DELETE"])
+def delete_user_from_event(event_id, user_id):
     """
     Endpoint for removing a user from an event by email
     """
+    token_response, code = extract_token(request.headers)
+    if not status_code_ok(code):
+        return failure_response(token_response, code)
+    session_token = token_response
+
+    event_response, code = event_dao.remove_user_from_event_by_ids(
+        session_token, event_id, user_id
+    )
+    if not status_code_ok(code):
+        return failure_response(event_response, code)
+
+    event_serialized = event_schema.dump(event_response)
+
+    return success_response(event_serialized, 200)
 
 
 # ----------------------------- Recipient Lists -----------------------------#

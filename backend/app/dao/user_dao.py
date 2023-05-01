@@ -1,6 +1,7 @@
 from app import db
 from app.models import User
 from app.auth import UserAuthentication, new_session_info, new_session_time
+from app.views import status_code_ok
 
 
 def _expire_session(user):
@@ -21,6 +22,14 @@ def _renew_session(user):
         user_session_info["update_token"],
     )
 
+def get_user_by_id(user_id):
+    """
+    Returns user by email
+    """
+    user = User.query.filter(User.id == user_id).first()
+    if user is None:
+        return {"error": "User not found with id"}, 404
+    return user, 200
 
 def get_user_by_email(email):
     """
@@ -102,7 +111,7 @@ def verify_credentials(body):
     # Check to whether a user with the same email exists
     user_email = body.get("email")
     existing_user, code = get_user_by_email(user_email)
-    if code != 200:
+    if not status_code_ok(code):
         return {"error": "User not found by email"}, 404
 
     user_password = body.get("password")
