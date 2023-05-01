@@ -123,6 +123,14 @@ event_schema = EventSchema()
 events_schema = EventSchema(many=True)
 
 
+# TODO
+@api_bp.route("/events/public/to/users/")
+def get_user_to_public_events():
+    """
+    Endpoint for getting all public events
+    """
+
+
 # TODO: Can have a different schema than individual events (Where additional information can be revealed)
 @api_bp.route("/events/from/users/")
 def get_events_created_by_user_by_token():
@@ -151,7 +159,7 @@ def get_events_invited_to_user_by_token():
     """
     try:
         session_token = extract_token(request.headers)
-
+        # Private events invited to user
         events = event_dao.get_events_to_user_by_session(session_token)
     except DaoException as de:
         return failure_response(de.message, de.code)
@@ -159,14 +167,6 @@ def get_events_invited_to_user_by_token():
     events_serialized = events_schema.dump(events)
 
     return success_response(events_serialized, 200)
-
-
-# TODO
-@api_bp.route("/events/public/to/users/")
-def get_user_to_public_events():
-    """
-    Endpoint for getting all public events
-    """
 
 
 @api_bp.route("/events/from/users/", methods=["POST"])
@@ -199,7 +199,9 @@ def update_event_by_id(event_id):
     try:
         session_token = extract_token(request.headers)
 
-        updated_event = event_dao.update_event_from_user_by_session(session_token, event_id, body)
+        updated_event = event_dao.update_event_from_user_by_session(
+            session_token, event_id, body
+        )
     except DaoException as de:
         return failure_response(de.message, de.code)
 
@@ -209,16 +211,17 @@ def update_event_by_id(event_id):
     return success_response(event_serialized, 201)
 
 
-@api_bp.route("/events/<int:event_id>/from/users/<int:user_id>/", methods=["POST"])
-def add_user_to_event(event_id, user_id):
+@api_bp.route("/events/<int:event_id>/from/users/", methods=["POST"])
+def add_user_to_event(event_id):
     """
     Endpoint for adding a user to an event by email
     """
+    target_user_email = request.args.get("target_email")
+
     try:
         session_token = extract_token(request.headers)
-
-        user_event = event_dao.add_user_to_event_by_ids(
-            session_token, event_id, user_id
+        user_event = event_dao.add_user_to_event_by_email(
+            session_token, event_id, target_user_email
         )
     except DaoException as de:
         return failure_response(de.message, de.code)
@@ -228,24 +231,26 @@ def add_user_to_event(event_id, user_id):
     return success_response(event_serialized, 200)
 
 
-@api_bp.route("/events/<int:event_id>/from/users/<int:user_id>/", methods=["DELETE"])
-def delete_user_from_event(event_id, user_id):
+@api_bp.route("/events/<int:event_id>/from/users/", methods=["DELETE"])
+def delete_user_from_event(event_id):
     """
     Endpoint for removing a user from an event by email
     """
+    target_user_email = request.args.get("target_email")
+
     try:
         session_token = extract_token(request.headers)
 
-        user_event = event_dao.remove_user_from_event_by_ids(
-            session_token, event_id, user_id
+        event_dao.remove_user_from_event_by_email(
+            session_token, event_id, target_user_email
         )
     except DaoException as de:
         return failure_response(de.message, de.code)
 
-    event_serialized = event_schema.dump(user_event)
+    return success_response(None, 204)
 
-    return success_response(event_serialized, 200)
 
+# TODO: Add endpoint to delete all recipients
 
 # ----------------------------- Recipient Lists -----------------------------#
 recipient_list_schema = RecipientListSchema()

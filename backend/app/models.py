@@ -1,5 +1,4 @@
 from app import db
-from sqlalchemy.ext.associationproxy import association_proxy
 
 
 # -------------------------- Associations --------------------------#
@@ -74,7 +73,7 @@ class Event(db.Model):
     end_time = db.Column(db.DateTime, nullable=False)
     location = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    # TODO: Add public private field
+    access = db.Column(db.String, nullable=False)
 
     user_association = db.relationship("UserEvent", back_populates="event")
 

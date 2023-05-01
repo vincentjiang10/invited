@@ -11,8 +11,8 @@ class UserSchema(SQLAlchemyAutoSchema):
 
     class Meta:
         model = User
-        # Set to true so that we will not create a new instance of a model when there is a matching existing one
-        # (In the case of updates)
+        # Set to true so that we will not create a new instance of a model 
+        # when there is a matching existing one (In the case of updates)
         load_instance = True
 
     id = fields.Integer(dump_only=True)
@@ -41,6 +41,7 @@ class EventSchema(SQLAlchemyAutoSchema):
     start_time = fields.DateTime(required=True)
     end_time = fields.DateTime(required=True)
     description = fields.String(required=True)
+    access = fields.String(required=True)
 
 
 class RecipientListSchema(SQLAlchemyAutoSchema):
