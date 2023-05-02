@@ -21,6 +21,7 @@ def hello():
     return success_response({"message": "Hurray!!"})
 
 
+# TODO: fix error when registering with missing parameters
 @api_bp.route("/users/register/", methods=["POST"])
 def register_account():
     """
@@ -87,18 +88,18 @@ def logout():
     return success_response({"message": "Successfully logged out"})
 
 
-@api_bp.route("/users/secret/", methods=["POST"])
-def secret_message():
+@api_bp.route("/users/info/", methods=["POST"])
+def user_info():
     """
     Endpoint for verifying session token and returning a secret message
     """
     try:
         session_token = extract_token(request.headers)
-        _ = user_dao.get_user_by_session_token(session_token)
+        user_info = user_dao.get_user_secret_info(session_token)
     except DaoException as de:
         return failure_response(de.message, de.code)
 
-    return success_response({"message": "Wow, what a cool secret message"})
+    return success_response(user_info)
 
 
 @api_bp.route("/users/session/", methods=["POST"])
@@ -123,7 +124,7 @@ event_schema = EventSchema()
 events_schema = EventSchema(many=True)
 
 
-# TODO
+# TODO: Fix duplicates
 @api_bp.route("/events/public/to/users/")
 def get_user_to_public_events():
     """
@@ -198,7 +199,7 @@ def create_event_by_token():
     return success_response(event_serialized, 201)
 
 
-@api_bp.route("/events/<int:event_id>/from/users/", methods=["POST"])
+@api_bp.route("/events/<int:event_id>/from/users/update/", methods=["POST"])
 def update_event_by_id(event_id):
     """
     Endpoint for modifying an event by id

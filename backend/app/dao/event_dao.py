@@ -3,29 +3,36 @@ from sqlalchemy import and_
 from app import db
 from app.dao import DaoException
 from app.schemas import EventSchema
-from app.models import UserEvent
+from app.models import Event, UserEvent
 from .user_dao import get_user_by_session_token, get_user_by_email
 
 
 # TODO: Improvements: Find a way to structure arguments (user_id=None, event_id=None, role=None)
 # TODO: Add (through function decorators maybe) the ability to precheck user through session token? ->
 # Maybe create an object whose constructor first checks whether or not user is valid and then stores that as a field?
+# TODO: Investigate how to report info from calling exception (DaoException from exc)
 
-# Initialize schema object
+# Initialize schema objects
 event_schema = EventSchema()
 
+# Enums
+UserEventRole = UserEvent.Role
+EventAccess = Event.Access
 
-def get_event_from_association(user_event_association, access=None):
+
+def get_event_from_association(user_event_association, access: EventAccess = None):
     """
     Get the event in the user event association
     """
     event = user_event_association.event
-    if event.access != access:
-        raise DaoException("Event does not exist", 400)
+    if access is not None and event.access != access:
+        raise DaoException("Event does not match access", 400)
     return event
 
 
-def get_events_from_all_associations(user_event_associations, access=None):
+def get_events_from_all_associations(
+    user_event_associations, access: EventAccess = None
+):
     """
     Get all the events in user event associations
     """
@@ -39,7 +46,9 @@ def get_events_from_all_associations(user_event_associations, access=None):
     return [event for event in events_from_associations if event.access == access]
 
 
-def get_user_event_association_query(user_id=None, event_id=None, role=None):
+def get_user_event_association_query(
+    user_id=None, event_id=None, role: UserEventRole = None
+):
     """
     Returns query of associations between user and event
     """
@@ -50,12 +59,15 @@ def get_user_event_association_query(user_id=None, event_id=None, role=None):
     if event_id is not None:
         filters.append(UserEvent.event_id == event_id)
     if role is not None:
+        # Note that we need to convert enum to string in order to compare
         filters.append(UserEvent.role == role)
 
     return UserEvent.query.filter(and_(*filters))
 
 
-def get_first_user_event_association(user_id=None, event_id=None, role=None):
+def get_first_user_event_association(
+    user_id=None, event_id=None, role: UserEventRole = None
+):
     """
     Returns the first association between user and event that exist
     """
@@ -73,7 +85,9 @@ def get_first_user_event_association(user_id=None, event_id=None, role=None):
     return user_event_association
 
 
-def get_all_user_event_associations(user_id=None, event_id=None, role=None):
+def get_all_user_event_associations(
+    user_id=None, event_id=None, role: UserEventRole = None
+):
     """
     Returns all associations between user and event that exist
     """
@@ -88,7 +102,9 @@ def get_all_user_event_associations(user_id=None, event_id=None, role=None):
 
 
 # TODO: Separate arguments into separate construct? Like a type or class?
-def get_all_user_events(user_id=None, event_id=None, role=None, access=None):
+def get_all_user_events(
+    user_id=None, event_id=None, role: UserEventRole = None, access: EventAccess = None
+):
     """
     Get all user events from user event associations that match
     """
@@ -98,7 +114,9 @@ def get_all_user_events(user_id=None, event_id=None, role=None, access=None):
     return get_events_from_all_associations(user_event_associations, access=access)
 
 
-def get_first_user_event(user_id=None, event_id=None, role=None, access=None):
+def get_first_user_event(
+    user_id=None, event_id=None, role: UserEventRole = None, access: EventAccess = None
+):
     """
     Get first user event from user event associations that match
     """
@@ -112,7 +130,9 @@ def get_all_public_events():
     """
     Get all public events
     """
-    public_events = get_all_user_events(access="public")
+    # Can potentially return duplicates
+    # Currently works as it only fetches creator events that are public, since no public events have recipients
+    public_events = get_all_user_events(access=EventAccess.PUBLIC)
 
     return public_events
 
@@ -123,7 +143,7 @@ def get_events_from_user_by_session(session_token):
     """
 
     user = get_user_by_session_token(session_token)
-    events_from_user = get_all_user_events(user_id=user.id, role="creator")
+    events_from_user = get_all_user_events(user_id=user.id, role=UserEventRole.CREATOR)
 
     return events_from_user
 
@@ -135,7 +155,7 @@ def get_events_to_user_by_session(session_token):
 
     user = get_user_by_session_token(session_token)
     events_to_user = get_all_user_events(
-        user_id=user.id, role="recipient", access="private"
+        user_id=user.id, role=UserEventRole.RECIPIENT, access=EventAccess.PRIVATE
     )
 
     return events_to_user
@@ -154,7 +174,9 @@ def create_event_by_session(session_token, body):
     user = get_user_by_session_token(session_token)
 
     # Add to UserEvent an association object
-    user_event_association = UserEvent(user=user, event=event, role="creator")
+    user_event_association = UserEvent(
+        user=user, event=event, role=UserEventRole.CREATOR
+    )
 
     db.session.add(user_event_association)
     db.session.commit()
@@ -168,7 +190,7 @@ def update_event_from_user_by_session(session_token, event_id, body):
     """
     user = get_user_by_session_token(session_token)
     user_event = get_first_user_event(
-        user_id=user.id, event_id=event_id, role="creator"
+        user_id=user.id, event_id=event_id, role=UserEventRole.CREATOR
     )
 
     try:
@@ -181,10 +203,10 @@ def update_event_from_user_by_session(session_token, event_id, body):
     except ValidationError as exc:
         raise DaoException("Missing or invalid required parameters") from exc
 
-    # Access change side-effect if update is valid: changing from "private" to "public" removes all recipients
+    # Access change side-effect if update is valid: changing from private to public removes all recipients
     access_to = body.get("access")
     access_from = user_event.access
-    if access_from == "private" and access_to == "public":
+    if access_from == EventAccess.PRIVATE and access_to == EventAccess.PUBLIC:
         remove_all_recipients_from_event(session_token, event_id)
 
     db.session.commit()
@@ -207,17 +229,17 @@ def add_user_to_event_by_email(session_token, event_id, target_user_email):
 
     # Check and get event created by current user
     user_event = get_first_user_event(
-        user_id=user.id, event_id=event_id, role="creator"
+        user_id=user.id,
+        event_id=event_id,
+        role=UserEventRole.CREATOR,
+        access=EventAccess.PRIVATE,
     )
-
-    if user_event.access == "public":
-        raise DaoException("Cannot add recipient as event is public")
 
     # Check whether event already has user as recipient
     is_user_already_recipient = True
     try:
         _ = get_first_user_event(
-            user_id=target_user.id, event_id=user_event.id, role="recipient"
+            user_id=target_user.id, event_id=user_event.id, role=UserEventRole.RECIPIENT
         )
     except DaoException:
         is_user_already_recipient = False
@@ -227,7 +249,7 @@ def add_user_to_event_by_email(session_token, event_id, target_user_email):
 
     # New user event association
     new_user_event_association = UserEvent(
-        user=target_user, event=user_event, role="recipient"
+        user=target_user, event=user_event, role=UserEventRole.RECIPIENT
     )
 
     # Add and commit to database
@@ -246,11 +268,13 @@ def remove_user_from_event_by_email(session_token, event_id, target_user_email):
     target_user = get_user_by_email(target_user_email)
 
     # Check whether user has created event
-    _ = get_first_user_event(user_id=user.id, event_id=event_id, role="creator")
+    _ = get_first_user_event(
+        user_id=user.id, event_id=event_id, role=UserEventRole.CREATOR
+    )
 
     # Check to see whether an association exists with target user as a recipient of user event
     target_user_event_association = get_first_user_event_association(
-        user_id=target_user.id, event_id=event_id, role="recipient"
+        user_id=target_user.id, event_id=event_id, role=UserEventRole.RECIPIENT
     )
 
     # Delete association and commit to database
@@ -264,10 +288,12 @@ def remove_all_recipients_from_event(session_token, event_id):
     """
     user = get_user_by_session_token(session_token)
     # Check whether user has created event
-    _ = get_first_user_event(user_id=user.id, event_id=event_id, role="creator")
+    _ = get_first_user_event(
+        user_id=user.id, event_id=event_id, role=UserEventRole.CREATOR
+    )
 
     recipient_event_associations = get_all_user_event_associations(
-        event_id=event_id, role="recipient"
+        event_id=event_id, role=UserEventRole.RECIPIENT
     )
 
     # Delete all associations between recipients and the event

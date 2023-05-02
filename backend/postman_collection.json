@@ -44,9 +44,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{api}}register/",
+					"raw": "{{users}}register/",
 					"host": [
-						"{{api}}register"
+						"{{users}}register"
 					],
 					"path": [
 						""
@@ -62,7 +62,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"first_name\": \"test_first_name\",\n    \"last_name\": \"test_last_name\",\n    \"email\": \"test@gmail.com\",\n    \"password\": \"test_password\"\n}",
+					"raw": "{\n    \"first_name\": \"test_first_name\",\n    \"last_name\": \"test_last_name\",\n    \"email\": \"test2@gmail.com\",\n    \"password\": \"test_password\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -70,9 +70,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{api}}register/",
+					"raw": "{{users}}register/",
 					"host": [
-						"{{api}}register"
+						"{{users}}register"
 					],
 					"path": [
 						""
@@ -423,13 +423,13 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Bearer 1c14a459a84396c5abcc35c3cdfb5d695775ca30",
+						"value": "055c59b96099b15715752b171281326a9355035f",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Another test event\",\n    \"location\": \"A test location\",\n    \"start_time\": \"2023-05-01 10:00:00\",\n    \"end_time\": \"2023-05-01 10:00:00\",\n    \"description\": \"Hello\"\n}",
+					"raw": "{\n    \"name\": \"Another test event\",\n    \"location\": \"A test location\",\n    \"start_time\": \"2023-04-30T12:00:00\",\n    \"end_time\": \"2023-04-30T1:00:00\",\n    \"description\": \"Hello\",\n    \"access\": \"publ\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -721,6 +721,39 @@
 		},
 		{
 			"name": "Modify event (valid user)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 6d7e0f7c592e508b05982a983d1257ae2d34c595",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{events}}from/users/",
+					"host": [
+						"{{events}}from"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get public events",
 			"request": {
 				"method": "POST",
 				"header": [

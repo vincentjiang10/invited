@@ -13,6 +13,7 @@ from app.schemas import UserSchema
 # Initialize schema object
 user_schema = UserSchema()
 
+
 def _expire_session(user):
     """
     Given user, expire the session and update user state
@@ -75,13 +76,26 @@ def get_user_by_session_token(session_token, expire_session=False):
     return user
 
 
+# TODO: Include image?
+def get_user_secret_info(session_token):
+    """
+    Returns user sensitive information as dictionary
+    """
+    user = get_user_by_session_token(session_token)
+
+    return {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+    }
+
+
 def get_user_by_update_token(update_token, renew_session=False):
     """
     Returns user by update token
     """
     user = User.query.filter(User.update_token == update_token).first()
     if user is None:
-        return {"error": "User is not found through update token"}, 404
+        raise DaoException("User is not found", 404)
 
     # Create authentication object and bind to existing user
     user_auth = UserAuthentication(user)

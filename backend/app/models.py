@@ -1,4 +1,5 @@
 from app import db
+from enum import Enum
 
 
 # -------------------------- Associations --------------------------#
@@ -24,11 +25,15 @@ class UserEvent(db.Model):
     Represents many-to-many relationship between user and event
     """
 
+    class Role(Enum):
+        CREATOR = "CREATOR"
+        RECIPIENT = "RECIPIENT"
+
     __tablename__ = "user_event"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
     event_id = db.Column("event_id", db.Integer, db.ForeignKey("event.id"))
-    role = db.Column(db.String)
+    role = db.Column(db.Enum(Role))
 
     user = db.relationship("User", back_populates="event_association")
     event = db.relationship("Event", back_populates="user_association")
@@ -66,6 +71,10 @@ class Event(db.Model):
     Event model (One-to-Many relation with User)
     """
 
+    class Access(Enum):
+        PUBLIC = "PUBLIC"
+        PRIVATE = "PRIVATE"
+
     __tablename__ = "event"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
@@ -73,7 +82,7 @@ class Event(db.Model):
     end_time = db.Column(db.DateTime, nullable=False)
     location = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    access = db.Column(db.String, nullable=False)
+    access = db.Column(db.Enum(Access), nullable=False)
 
     user_association = db.relationship("UserEvent", back_populates="event")
 
