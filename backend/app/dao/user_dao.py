@@ -143,7 +143,7 @@ def create_user(body):
         # user is of instance User
         user = user_schema.load(body, unknown=EXCLUDE, session=db.session)
     except ValidationError as exc:
-        raise DaoException("Missing or invalid email or name") from exc
+        raise DaoException(str(exc)) from exc
 
     # Renew session and update user state
     _renew_session(user)
