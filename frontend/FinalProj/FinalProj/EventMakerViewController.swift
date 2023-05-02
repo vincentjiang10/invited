@@ -9,13 +9,21 @@ import UIKit
 
 class EventMakerViewController: UIViewController {
 
-    let eventNameLabel = UILabel()
-    let eventDateLabel = UILabel()
-    let eventDescriptionLabel = UILabel()
     let titleof = UILabel()
+    let eventNameLabel = UILabel()
+    let eventStartDateLabel = UILabel()
+    let eventEndDateLabel = UILabel()
+    let eventLoc = UILabel()
+    let eventAcc = UILabel()
+    let eventDescriptionLabel = UILabel()
+    
     let eventNameField = UITextField()
-    let eventDateField = UITextField()
+    let eventStartDateField = UITextField()
+    let eventEndDateField = UITextField()
     let eventDescriptionField = UITextField()
+    let eventLocField = UITextField()
+    let eventAccField = UITextField()
+    
     var saveButton = UIButton()
     
     weak var delegate: MakeEventDelegate?
@@ -50,22 +58,43 @@ class EventMakerViewController: UIViewController {
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: eventNameField.frame.height))
         let paddingView1 = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: eventNameField.frame.height))
         let paddingView2 = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: eventNameField.frame.height))
+        let paddingView3 = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: eventNameField.frame.height))
+        let paddingView4 = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: eventNameField.frame.height))
+        let paddingView5 = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: eventNameField.frame.height))
         
         eventNameField.leftView = paddingView
         eventNameField.leftViewMode = .always
-        eventDateField.leftView = paddingView1
-        eventDateField.leftViewMode = .always
-        eventDescriptionField.leftView = paddingView2
+        eventStartDateField.leftView = paddingView1
+        eventStartDateField.leftViewMode = .always
+        eventEndDateField.leftView = paddingView2
+        eventEndDateField.leftViewMode = .always
+        eventLocField.leftView = paddingView3
+        eventLocField.leftViewMode = .always
+        eventAccField.leftView = paddingView4
+        eventAccField.leftViewMode = .always
+        eventDescriptionField.leftView = paddingView5
         eventDescriptionField.leftViewMode = .always
         
         eventNameField.placeholder = "Name of your Event!"
         eventNameField.textAlignment = .left
         eventNameField.backgroundColor = UIColor.white
         eventNameField.font = UIFont.systemFont(ofSize: 14)
-        eventDateField.placeholder = "Add the Date!"
-        eventDateField.textAlignment = .left
-        eventDateField.backgroundColor = UIColor.white
-        eventDateField.font = UIFont.systemFont(ofSize: 14)
+        eventStartDateField.placeholder = "When does it start?"
+        eventStartDateField.textAlignment = .left
+        eventStartDateField.backgroundColor = UIColor.white
+        eventStartDateField.font = UIFont.systemFont(ofSize: 14)
+        eventEndDateField.placeholder = "When does it end?"
+        eventEndDateField.textAlignment = .left
+        eventEndDateField.backgroundColor = UIColor.white
+        eventEndDateField.font = UIFont.systemFont(ofSize: 14)
+        eventLocField.placeholder = "Where is it happenin'"
+        eventLocField.textAlignment = .left
+        eventLocField.backgroundColor = UIColor.white
+        eventLocField.font = UIFont.systemFont(ofSize: 14)
+        eventAccField.placeholder = "Is this a private or public event?"
+        eventAccField.textAlignment = .left
+        eventAccField.backgroundColor = UIColor.white
+        eventAccField.font = UIFont.systemFont(ofSize: 14)
         eventDescriptionField.placeholder = "Tell us more! Give us the Details!"
         eventDescriptionField.textAlignment = .left
         eventDescriptionField.backgroundColor = UIColor.white
@@ -79,14 +108,22 @@ class EventMakerViewController: UIViewController {
         eventNameField.layer.cornerRadius = 5
         eventNameField.layer.borderColor = UIColor.gray.cgColor
         eventNameField.translatesAutoresizingMaskIntoConstraints = false
-        eventDateField.borderStyle = .roundedRect
-        eventDateField.layer.cornerRadius = 9
-        eventDateField.layer.backgroundColor = CGColor.init(red: 0.898, green: 0.898, blue: 0.898, alpha: 1)
-        eventDateField.layer.borderWidth = 1
-        eventDateField.layer.borderColor = UIColor.black.cgColor
-        eventDateField.layer.cornerRadius = 5
-        eventDateField.layer.borderColor = UIColor.gray.cgColor
-        eventDateField.translatesAutoresizingMaskIntoConstraints = false
+        eventStartDateField.borderStyle = .roundedRect
+        eventStartDateField.layer.cornerRadius = 9
+        eventStartDateField.layer.backgroundColor = CGColor.init(red: 0.898, green: 0.898, blue: 0.898, alpha: 1)
+        eventStartDateField.layer.borderWidth = 1
+        eventStartDateField.layer.borderColor = UIColor.black.cgColor
+        eventStartDateField.layer.cornerRadius = 5
+        eventStartDateField.layer.borderColor = UIColor.gray.cgColor
+        eventStartDateField.translatesAutoresizingMaskIntoConstraints = false
+        eventEndDateField.borderStyle = .roundedRect
+        eventEndDateField.layer.cornerRadius = 9
+        eventEndDateField.layer.borderWidth = 1
+        eventEndDateField.layer.backgroundColor = CGColor.init(red: 0.898, green: 0.898, blue: 0.898, alpha: 1)
+        eventEndDateField.layer.borderColor = UIColor.black.cgColor
+        eventEndDateField.layer.cornerRadius = 5
+        eventEndDateField.layer.borderColor = UIColor.gray.cgColor
+        eventEndDateField.translatesAutoresizingMaskIntoConstraints = false
         eventDescriptionField.borderStyle = .roundedRect
         eventDescriptionField.layer.cornerRadius = 9
         eventDescriptionField.layer.backgroundColor = CGColor.init(red: 0.898, green: 0.898, blue: 0.898, alpha: 1)
@@ -95,8 +132,28 @@ class EventMakerViewController: UIViewController {
         eventDescriptionField.layer.cornerRadius = 5
         eventDescriptionField.layer.borderColor = UIColor.gray.cgColor
         eventDescriptionField.translatesAutoresizingMaskIntoConstraints = false
+        eventLocField.borderStyle = .roundedRect
+        eventLocField.layer.cornerRadius = 9
+        eventLocField.layer.backgroundColor = CGColor.init(red: 0.898, green: 0.898, blue: 0.898, alpha: 1)
+        eventLocField.layer.borderWidth = 1
+        eventLocField.layer.borderColor = UIColor.black.cgColor
+        eventLocField.layer.cornerRadius = 5
+        eventLocField.layer.borderColor = UIColor.gray.cgColor
+        eventLocField.translatesAutoresizingMaskIntoConstraints = false
+        eventAccField.borderStyle = .roundedRect
+        eventAccField.layer.cornerRadius = 9
+        eventAccField.layer.backgroundColor = CGColor.init(red: 0.898, green: 0.898, blue: 0.898, alpha: 1)
+        eventAccField.layer.borderWidth = 1
+        eventAccField.layer.borderColor = UIColor.black.cgColor
+        eventAccField.layer.cornerRadius = 5
+        eventAccField.layer.borderColor = UIColor.gray.cgColor
+        eventAccField.translatesAutoresizingMaskIntoConstraints = false
+        
         view.addSubview(eventNameField)
-        view.addSubview(eventDateField)
+        view.addSubview(eventStartDateField)
+        view.addSubview(eventEndDateField)
+        view.addSubview(eventLocField)
+        view.addSubview(eventAccField)
         view.addSubview(eventDescriptionField)
         
         eventNameLabel.text = "Name:"
@@ -104,10 +161,25 @@ class EventMakerViewController: UIViewController {
         eventNameLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventNameLabel)
         
-        eventDateLabel.text = "Date:"
-        eventDateLabel.font = UIFont.boldSystemFont(ofSize: 20)
-        eventDateLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(eventDateLabel)
+        eventStartDateLabel.text = "Start Date:"
+        eventStartDateLabel.font = UIFont.boldSystemFont(ofSize: 20)
+        eventStartDateLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(eventStartDateLabel)
+        
+        eventEndDateLabel.text = "End Date:"
+        eventEndDateLabel.font = UIFont.boldSystemFont(ofSize: 20)
+        eventEndDateLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(eventEndDateLabel)
+        
+        eventLoc.text = "Location:"
+        eventLoc.font = UIFont.boldSystemFont(ofSize: 20)
+        eventLoc.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(eventLoc)
+        
+        eventAcc.text = "Public or Private:"
+        eventAcc.font = UIFont.boldSystemFont(ofSize: 20)
+        eventAcc.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(eventAcc)
         
         eventDescriptionLabel.text = "Description:"
         eventDescriptionLabel.font = UIFont.boldSystemFont(ofSize: 20)
@@ -138,21 +210,60 @@ class EventMakerViewController: UIViewController {
         ])
         
         NSLayoutConstraint.activate([
-            eventDateLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            eventDateLabel.topAnchor.constraint(equalTo: eventNameField.bottomAnchor, constant: 15),
-            eventDateLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
+            eventStartDateLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventStartDateLabel.topAnchor.constraint(equalTo: eventNameField.bottomAnchor, constant: 15),
+            eventStartDateLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
         ])
         
         NSLayoutConstraint.activate([
-            eventDateField.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
-            eventDateField.heightAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.1),
-            eventDateField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            eventDateField.topAnchor.constraint(equalTo: eventDateLabel.bottomAnchor, constant: 10)
+            eventStartDateField.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            eventStartDateField.heightAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.1),
+            eventStartDateField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventStartDateField.topAnchor.constraint(equalTo: eventStartDateLabel.bottomAnchor, constant: 10)
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventEndDateLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventEndDateLabel.topAnchor.constraint(equalTo: eventStartDateField.bottomAnchor, constant: 15),
+            eventEndDateLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventEndDateField.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            eventEndDateField.heightAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.1),
+            eventEndDateField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventEndDateField.topAnchor.constraint(equalTo: eventEndDateLabel.bottomAnchor, constant: 10)
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventLoc.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventLoc.topAnchor.constraint(equalTo: eventEndDateField.bottomAnchor, constant: 15),
+            eventLoc.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventLocField.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            eventLocField.heightAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.1),
+            eventLocField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventLocField.topAnchor.constraint(equalTo: eventLoc.bottomAnchor, constant: 10)
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventAcc.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventAcc.topAnchor.constraint(equalTo: eventLocField.bottomAnchor, constant: 15),
+            eventAcc.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventAccField.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            eventAccField.heightAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.1),
+            eventAccField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventAccField.topAnchor.constraint(equalTo: eventAcc.bottomAnchor, constant: 10)
         ])
         
         NSLayoutConstraint.activate([
             eventDescriptionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            eventDescriptionLabel.topAnchor.constraint(equalTo: eventDateField.bottomAnchor, constant: 15),
+            eventDescriptionLabel.topAnchor.constraint(equalTo: eventAccField.bottomAnchor, constant: 15),
             eventDescriptionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
         ])
         
@@ -167,22 +278,22 @@ class EventMakerViewController: UIViewController {
             saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             saveButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -40)
         ])
-        
+        // rotating view, for selecting from a list of items
+        // uipicker view for dropdown menu
     }
 
     @objc func savenew() {
-        if let text1 = eventNameField.text, let text2 = eventDateField.text, let text3 = eventDescriptionField.text,
-           text1.isEmpty || text2.isEmpty || text3.isEmpty {
+        if let text1 = eventNameField.text, let text2 = eventStartDateField.text, let text3 = eventEndDateField.text, let text4 = eventDescriptionField.text, let text5 = eventLocField.text, let text6 = eventAccField.text,
+           text1.isEmpty || text2.isEmpty || text3.isEmpty || text4.isEmpty || text5.isEmpty || text6.isEmpty {
             let alert = UIAlertController(title: "Error!", message: "Please fill out all event details!", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Okay!", style: .default, handler: nil))
             present(alert, animated: true, completion: {
                 return
             })
         }
         
-        if let text1 = eventNameField.text, let text2 = eventDateField.text, let text3 = eventDescriptionField.text
+        if let text1 = eventNameField.text, let text2 = eventStartDateField.text, let text3 = eventEndDateField.text, let text4 = eventLocField.text, let text5 = eventAccField.text, let text6 = eventDescriptionField.text
               {
-            delegate?.makeEvent(nametext: text1, datetext: text2, descriptext: text3)
+            delegate?.createEvent(nametext: text1, starttime: text2, endtime: text3, loc: text4, acc: text5, descrip: text6)
             self.dismiss(animated: true)
         }
     }
@@ -191,7 +302,7 @@ class EventMakerViewController: UIViewController {
     
     
 protocol MakeEventDelegate: ViewController {
-    func makeEvent(nametext: String, datetext: String, descriptext: String)
+    func createEvent(nametext: String, starttime: String, endtime: String, loc: String, acc: String, descrip: String)
 }
 
 

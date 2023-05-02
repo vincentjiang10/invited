@@ -10,6 +10,7 @@
 		D60750F729FC6A5200DB7D2A /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60750F629FC6A5200DB7D2A /* ProfileViewController.swift */; };
 		D60750F929FC6B3A00DB7D2A /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60750F829FC6B3A00DB7D2A /* Profile.swift */; };
 		D60750FB29FC774E00DB7D2A /* FilterCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60750FA29FC774E00DB7D2A /* FilterCollectionViewCell.swift */; };
+		D64952122A00582D00124291 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64952112A00582D00124291 /* NetworkManager.swift */; };
 		D6A9011129FEECF80092CDAD /* EventMakerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A9011029FEECF80092CDAD /* EventMakerViewController.swift */; };
 		D6F4CE7E29FA020900732020 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F4CE7D29FA020900732020 /* AppDelegate.swift */; };
 		D6F4CE8029FA020900732020 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F4CE7F29FA020900732020 /* SceneDelegate.swift */; };
@@ -26,6 +27,7 @@
 		D60750F629FC6A5200DB7D2A /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		D60750F829FC6B3A00DB7D2A /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		D60750FA29FC774E00DB7D2A /* FilterCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterCollectionViewCell.swift; sourceTree = "<group>"; };
+		D64952112A00582D00124291 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		D6A9011029FEECF80092CDAD /* EventMakerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventMakerViewController.swift; sourceTree = "<group>"; };
 		D6F4CE7A29FA020900732020 /* finalproj.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = finalproj.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6F4CE7D29FA020900732020 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -78,6 +80,7 @@
 				D6A9011029FEECF80092CDAD /* EventMakerViewController.swift */,
 				D60750F629FC6A5200DB7D2A /* ProfileViewController.swift */,
 				D60750FA29FC774E00DB7D2A /* FilterCollectionViewCell.swift */,
+				D64952112A00582D00124291 /* NetworkManager.swift */,
 				D6F4CE8329FA020900732020 /* Main.storyboard */,
 				D6F4CE8629FA020A00732020 /* Assets.xcassets */,
 				D6F4CE8829FA020A00732020 /* LaunchScreen.storyboard */,
@@ -163,6 +166,7 @@
 				D60750FB29FC774E00DB7D2A /* FilterCollectionViewCell.swift in Sources */,
 				D60750F929FC6B3A00DB7D2A /* Profile.swift in Sources */,
 				D6F4CE9229FA064C00732020 /* Event.swift in Sources */,
+				D64952122A00582D00124291 /* NetworkManager.swift in Sources */,
 				D6F4CE8229FA020900732020 /* ViewController.swift in Sources */,
 				D6F4CE7E29FA020900732020 /* AppDelegate.swift in Sources */,
 				D6A9011129FEECF80092CDAD /* EventMakerViewController.swift in Sources */,

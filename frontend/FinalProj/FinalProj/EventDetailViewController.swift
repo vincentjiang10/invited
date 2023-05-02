@@ -13,11 +13,12 @@ class EventDetailViewController: UIViewController {
     let eventActualName = UILabel()
     let eventDate = UILabel()
     let eventActualDate = UILabel()
+    let eventLoc = UILabel()
+    let eventActualLoc = UILabel()
+    let eventAcc = UILabel()
     let eventDescrip = UILabel()
     let eventActualDescrip = UILabel()
     var back = UIBarButtonItem()
-    
-    weak var del: updateCell?
     
     let event: Event
 
@@ -49,7 +50,7 @@ class EventDetailViewController: UIViewController {
         eventName.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventName)
 
-        eventActualName.text = event.eventName
+        eventActualName.text = event.name
         eventActualName.textColor = .black
         
         let PalatinoFont = UIFontDescriptor(name: "Palatino", size: 30.0)
@@ -66,7 +67,7 @@ class EventDetailViewController: UIViewController {
         eventDate.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventDate)
         
-        eventActualDate.text = event.eventDate
+        eventActualDate.text = event.start_time + "-" + event.end_time
         eventActualDate.textColor = .black
         
         let ArialFont = UIFontDescriptor(name: "Arial", size: 22.0)
@@ -77,13 +78,36 @@ class EventDetailViewController: UIViewController {
         eventActualDate.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventActualDate)
         
+        eventLoc.text = "Location:"
+        eventLoc.textColor = .gray
+        eventLoc.font = UIFont.boldSystemFont(ofSize: 24)
+        eventLoc.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(eventLoc)
+        
+        eventActualLoc.text = event.location
+        eventActualDate.textColor = .black
+        
+        let ArialFont2 = UIFontDescriptor(name: "Arial", size: 22.0)
+        let boldFontDescriptorDuplie2 = ArialFont2.withSymbolicTraits(.traitBold)
+        let boldFontDuplie2 = UIFont(descriptor: boldFontDescriptorDuplie2!, size: 22.0)
+        
+        eventActualLoc.font = boldFontDuplie2
+        eventActualLoc.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(eventActualLoc)
+        
+        eventAcc.text = "This is a " + event.access + "event."
+        eventAcc.textColor = .gray
+        eventAcc.font = UIFont.boldSystemFont(ofSize: 24)
+        eventAcc.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(eventAcc)
+        
         eventDescrip.text = "Description"
         eventDescrip.textColor = .gray
         eventDescrip.font = UIFont.boldSystemFont(ofSize: 24)
         eventDescrip.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventDescrip)
         
-        eventActualDescrip.text = event.eventDescription
+        eventActualDescrip.text = event.description
         eventActualDescrip.textColor = .black
         
         let PalatinoFontDupe = UIFontDescriptor(name: "Palatino", size: 22.0)
@@ -128,11 +152,23 @@ class EventDetailViewController: UIViewController {
         ])
         
         NSLayoutConstraint.activate([
-            eventDescrip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            eventDescrip.topAnchor.constraint(equalTo: eventActualDate.bottomAnchor, constant: 52),
-            eventDescrip.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
+            eventLoc.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventLoc.topAnchor.constraint(equalTo: eventActualDate.bottomAnchor, constant: 15),
+            eventLoc.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
         ])
         
+        NSLayoutConstraint.activate([
+            eventActualLoc.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventActualLoc.topAnchor.constraint(equalTo: eventLoc.bottomAnchor, constant: 5),
+            eventActualLoc.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            eventActualLoc.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 20),
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventDescrip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventDescrip.topAnchor.constraint(equalTo: eventActualLoc.bottomAnchor, constant: 52),
+            eventDescrip.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
+        ])
         
         NSLayoutConstraint.activate([
             eventActualDescrip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -146,8 +182,4 @@ class EventDetailViewController: UIViewController {
         self.navigationController?.popViewController(animated: true)
     }
 
-}
-
-protocol updateCell: UIViewController {
-    func updates(eventName: String, eventDate: String, eventDescrip: String)
 }

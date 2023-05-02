@@ -11,6 +11,8 @@ class EventTableViewCell: UITableViewCell {
 
     let eventName = UILabel()
     let eventDate = UILabel()
+    let eventLocat = UILabel()
+    let eventAcc = UILabel()
     let eventDescrip = UILabel()
     let eventDescripTitle = UILabel()
     
@@ -29,6 +31,16 @@ class EventTableViewCell: UITableViewCell {
         eventDate.font = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
         eventDate.textColor = .black
         self.contentView.addSubview(eventDate)
+        
+        eventLocat.translatesAutoresizingMaskIntoConstraints = false
+        eventLocat.font = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
+        eventLocat.textColor = .black
+        self.contentView.addSubview(eventLocat)
+        
+        eventAcc.translatesAutoresizingMaskIntoConstraints = false
+        eventAcc.font = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
+        eventAcc.textColor = .black
+        self.contentView.addSubview(eventAcc)
         
         eventDescrip.translatesAutoresizingMaskIntoConstraints = false
         eventDescrip.font = UIFont.systemFont(ofSize: 15)
@@ -56,13 +68,25 @@ class EventTableViewCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             eventDate.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
-            eventDate.centerYAnchor.constraint(equalTo: eventName.bottomAnchor, constant: 12),
-            eventDate.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -10),
+            eventDate.centerYAnchor.constraint(equalTo: eventName.bottomAnchor, constant: 12)
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventLocat.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
+            eventLocat.centerYAnchor.constraint(equalTo: eventName.bottomAnchor, constant: 12),
+            eventLocat.trailingAnchor.constraint(equalTo: eventDate.trailingAnchor, constant: -10)
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventAcc.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
+            eventAcc.centerYAnchor.constraint(equalTo: eventDate.bottomAnchor, constant: 12),
+            eventAcc.trailingAnchor.constraint(equalTo: eventDate.trailingAnchor, constant: -10)
         ])
         
         NSLayoutConstraint.activate([
             eventDescripTitle.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
-            eventDescripTitle.centerYAnchor.constraint(equalTo: eventDate.bottomAnchor, constant: 12)
+            eventDescripTitle.centerYAnchor.constraint(equalTo: eventDate.bottomAnchor, constant: 12),
+            eventDescripTitle.trailingAnchor.constraint(equalTo: eventAcc.trailingAnchor, constant: -10)
         ])
         
         NSLayoutConstraint.activate([
@@ -72,10 +96,12 @@ class EventTableViewCell: UITableViewCell {
         ])
     }
     
-    func updateFrom(event: Event) {
-        eventName.text = event.eventName
-        eventDate.text = "Date: " + event.eventDate
-        eventDescrip.text = event.eventDescription
+    func configure(eventObject: Event) {
+        eventName.text = eventObject.name
+        eventDate.text = eventObject.start_time + "-" + eventObject.end_time
+        eventLocat.text = eventObject.location
+        eventAcc.text = eventObject.access
+        eventDescrip.text = eventObject.description
     }
     
     

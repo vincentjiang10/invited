@@ -9,10 +9,13 @@ import Foundation
 import UIKit
 
 struct Event: Codable  {
-    var eventName: String
-    var eventDate: String
-    var eventDescription: String
-    
+    var id: Int
+    var name: String
+    var start_time: String
+    var end_time: String
+    var location: String
+    var access: String
+    var description: String
 }
 
 struct EventResponse: Codable {

@@ -7,10 +7,10 @@
 
 import UIKit
 
-class ViewController: UIViewController, MakeEventDelegate {
+class ViewController: UIViewController {
     
     let tableView = UITableView()
-    var events: [Event] = [Event]()
+    var eventData: [Event] = []
     var newevents: [Event] = []
     
     var filterCollectionView: UICollectionView!
@@ -20,7 +20,9 @@ class ViewController: UIViewController, MakeEventDelegate {
     var profileButton = UIBarButtonItem()
     var addEventButton = UIBarButtonItem()
     
-    var filters: [String] = ["Sports", "Food", "Party", "Social", "Other 😳"]
+    let refreshControl = UIRefreshControl()
+    
+    var filters: [String] = ["Public", "Invited", "Personal"]
     var newfilters: [String] = []
     
     let itemPadding: CGFloat = 10
@@ -33,6 +35,11 @@ class ViewController: UIViewController, MakeEventDelegate {
     
 
     override func viewDidLoad() {
+        
+        var url = URL(string: "https://34.85.172.228/")!
+        let formatParameter = URLQueryItem(name: "format", value: "json")
+        url.append(queryItems: [formatParameter])
+        
         super.viewDidLoad()
         title = "Event Feed"
         navigationController?.navigationBar.titleTextAttributes = [ NSAttributedString.Key.foregroundColor : UIColor.black]
@@ -40,18 +47,6 @@ class ViewController: UIViewController, MakeEventDelegate {
         navigationController?.setNavigationBarHidden(false, animated: true)
 
         view.backgroundColor = .white
-        
-        events = [
-            (Event(eventName: "Picnic", eventDate: "05/05/23", eventDescription: "Picnic with everyone!")),
-            (Event(eventName: "Dance Party", eventDate: "05/06/23", eventDescription: "Disco dance party in Willard.")),
-            (Event(eventName: "Basketball Game", eventDate: "05/06/23", eventDescription: "Cornell v.s. Princeton. Come join and cheer on the team! Free shirts given too <3")),
-            (Event(eventName: "Movie hangout?", eventDate: "05/07/23", eventDescription: "Anyone want to watch a film with me?")),
-            (Event(eventName: "BBQ", eventDate: "05/05/23", eventDescription: "BBQ at the slope.")),
-            (Event(eventName: "New SZA Album Listening Party!!", eventDate: "05/10/23", eventDescription: "Vibe to the new SZA album at Goldwin. Skip Slope Day lol.")),
-            (Event(eventName: "Dyson Networking Hour", eventDate: "05/15/23", eventDescription: "Meet with fellow students and professors.")),
-            (Event(eventName: "Slug Club", eventDate: "05/18/23", eventDescription: "Social club for Professor Slughorn's favorite students!")),
-
-        ]
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.delegate = self
@@ -79,6 +74,15 @@ class ViewController: UIViewController, MakeEventDelegate {
         filterCollectionView.delegate = self
         view.addSubview(filterCollectionView)
         
+        
+        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        if #available(iOS 10.0, *) {
+            tableView.refreshControl = refreshControl
+        } else {
+            tableView.addSubview(refreshControl)
+        }
+        
+        bringEventData()
         setupConstraints()
         
     }
@@ -100,12 +104,36 @@ class ViewController: UIViewController, MakeEventDelegate {
         ])
         
     }
-    func makeEvent(nametext: String, datetext: String, descriptext: String) {
-        let newEvent = Event(eventName: nametext, eventDate: datetext, eventDescription: descriptext)
-        events.append(newEvent)
+    func bringEventData() {
+//        NetworkManager.shared.getAllEvents { eventors in
+//            DispatchQueue.main.async {
+//                self.newevents = eventors
+//                self.tableView.reloadData()
+//            }
+//        }
         
-        let newIndexPath = IndexPath(row: events.count - 1, section: 0)
-        tableView.insertRows(at: [newIndexPath], with: .automatic)
+        newevents = [
+            (Event(id: 0, name: "Picnic", start_time: "05/05/23", end_time: "05/06/23" , location: "Ho Plaza", access: "Public", description: "Picnic with everyone!")),
+            (Event(id: 1, name: "Dance Party", start_time: "05/06/23", end_time: "05/06/23", location: "Willard", access: "Public", description: "Disco dance party in Willard.")),
+            (Event(id: 2, name: "Basketball Game", start_time: "05/06/23", end_time: "05/07/23", location: "Gym", access: "Public", description: "Cornell v.s. Princeton. Come join and cheer on the team! Free shirts given too <3")),
+            (Event(id: 3, name: "Movie hangout?", start_time: "05/07/23", end_time: "05/07/23", location: "Cornell Cinema", access: "Public", description: "Anyone want to watch a film with me?")),
+            (Event(id: 4, name: "BBQ", start_time: "05/05/23", end_time: "05/09/23", location: "The Wilderness", access: "Public", description: "BBQ at the slope.")),
+            (Event(id: 5, name: "New SZA Album Listening Party!!", start_time: "05/10/23", end_time: "05/12/23", location: "Barton Hall", access: "Public", description: "Vibe to the new SZA album at Goldwin. Skip Slope Day lol.")),
+            (Event(id: 6, name: "Dyson Networking Hour", start_time: "05/15/23", end_time: "05/15/23", location: "Sage Hall", access: "Public", description: "Meet with fellow students and professors.")),
+            (Event(id: 7, name: "Slug Club", start_time: "05/18/23", end_time: "05/19/23", location: "Hogwarts", access: "Public", description: "Social club for Professor Slughorn's favorite students!")),
+            ]
+        
+    }
+
+    @objc func refreshData() {
+        NetworkManager.shared.getAllEvents { eventors in
+            DispatchQueue.main.async {
+                self.newevents = eventors
+                self.tableView.reloadData()
+                self.refreshControl.endRefreshing()
+            }
+        }
+
     }
     
     @objc func pushView() {
@@ -136,7 +164,7 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if let cell = collectionView.cellForItem(at: indexPath) as? FilterCollectionViewCell{
             cell.label.backgroundColor = .systemCyan
-            if cell.label.text == "Sports" {
+            if cell.label.text == "Public Events" {
 //                unimplemented need to implement filters
             }
         }
@@ -153,76 +181,43 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, 
     
 }
         
-
-extension ViewController: updateCell {
-    func updates(eventName: String, eventDate: String, eventDescrip: String) {
-        events[currentIndex.row].eventName = eventName
-        events[currentIndex.row].eventDate = eventDate
-        events[currentIndex.row].eventDescription = eventDescrip
-        tableView.reloadData()
-    }
-}
-
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.currentIndex = indexPath
-        let currentEvent = events[indexPath.row]
+        let currentEvent = eventData[indexPath.row]
         
         let vc = EventDetailViewController(event: currentEvent)
-        vc.del = self
         
         navigationController?.pushViewController(vc, animated: true)
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) ->
     Int {
-        return events.count
+        return eventData.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) ->
     UITableViewCell {
-        if let cell = tableView.dequeueReusableCell(withIdentifier: reuseID, for: indexPath) as? EventTableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: reuseID, for: indexPath) as! EventTableViewCell
+        let currentEvent = newevents[indexPath.row]
+        cell.configure(eventObject: currentEvent)
             
-            let currentEvent = events[indexPath.row]
+        let topBorder = CALayer()
+        topBorder.frame = CGRect(x: 0, y: 0, width: cell.contentView.frame.width, height: 0.5)
+        topBorder.backgroundColor = UIColor.purple.cgColor
+        cell.contentView.layer.addSublayer(topBorder)
+        
+        let bottomBorder = CALayer()
+        bottomBorder.frame = CGRect(x: 0, y: cell.contentView.frame.height, width: cell.contentView.frame.width, height: 0.5)
+        bottomBorder.backgroundColor = UIColor.purple.cgColor
+        cell.contentView.layer.addSublayer(bottomBorder)
             
-            cell.updateFrom(event: currentEvent)
-            
-            let topBorder = CALayer()
-            topBorder.frame = CGRect(x: 0, y: 0, width: cell.contentView.frame.width, height: 0.5)
-            topBorder.backgroundColor = UIColor.purple.cgColor
-            cell.contentView.layer.addSublayer(topBorder)
-            
-            let bottomBorder = CALayer()
-            bottomBorder.frame = CGRect(x: 0, y: cell.contentView.frame.height, width: cell.contentView.frame.width, height: 0.5)
-            bottomBorder.backgroundColor = UIColor.purple.cgColor
-            cell.contentView.layer.addSublayer(bottomBorder)
-            
-            return cell
-            
-        } else {
-            return UITableViewCell()
+        return cell
+        
         }
-
-    }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 112
-    }
-    
-    
-    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
-        return .delete
-    }
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            tableView.beginUpdates()
-            
-            events.remove(at: indexPath.row)
-            
-            tableView.deleteRows(at: [indexPath], with: .fade)
-            tableView.endUpdates()
-        }
-    }
-    
+    }    
 }
 
 extension ViewController: ChangeTextDelegate {
@@ -232,3 +227,10 @@ extension ViewController: ChangeTextDelegate {
     }
 }
 
+extension ViewController: MakeEventDelegate {
+    func createEvent(nametext: String, starttime: String, endtime: String, loc: String,  acc: String, descrip: String) {
+        NetworkManager.shared.createEvent(nametext: nametext, starttime: starttime, endtime: endtime, loc: loc, acc: acc, descrip: descrip) { event in
+            print("success")
+        }
+    }
+}
