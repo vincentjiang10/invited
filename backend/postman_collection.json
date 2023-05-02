@@ -784,6 +784,39 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Remove recipient",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 6d7e0f7c592e508b05982a983d1257ae2d34c595",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{events}}from/users/",
+					"host": [
+						"{{events}}from"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

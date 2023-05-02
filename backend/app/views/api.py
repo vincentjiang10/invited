@@ -21,7 +21,6 @@ def hello():
     return success_response({"message": "Hurray!!"})
 
 
-# TODO: fix error when registering with missing parameters
 @api_bp.route("/users/register/", methods=["POST"])
 def register_account():
     """
@@ -55,7 +54,6 @@ def extract_token(request_headers):
     return bearer_token
 
 
-# TODO: Add exception catching for dao operations
 @api_bp.route("/users/login/", methods=["POST"])
 def login():
     """
@@ -124,7 +122,6 @@ event_schema = EventSchema()
 events_schema = EventSchema(many=True)
 
 
-# TODO: Fix duplicates
 @api_bp.route("/events/public/to/users/")
 def get_user_to_public_events():
     """
@@ -218,7 +215,7 @@ def update_event_by_id(event_id):
     # Serialize event
     event_serialized = event_schema.dump(updated_event)
 
-    return success_response(event_serialized, 201)
+    return success_response(event_serialized, 200)
 
 
 @api_bp.route("/events/<int:event_id>/from/users/", methods=["POST"])

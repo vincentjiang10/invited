@@ -193,6 +193,10 @@ def update_event_from_user_by_session(session_token, event_id, body):
         user_id=user.id, event_id=event_id, role=UserEventRole.CREATOR
     )
 
+    access_from = user_event.access
+    # Convert to Enum
+    access_to = EventAccess[body.get("access")]
+
     try:
         # Pass existing instance
         event_schema_of_instance = EventSchema(instance=user_event)
@@ -204,8 +208,6 @@ def update_event_from_user_by_session(session_token, event_id, body):
         raise DaoException("Missing or invalid required parameters") from exc
 
     # Access change side-effect if update is valid: changing from private to public removes all recipients
-    access_to = body.get("access")
-    access_from = user_event.access
     if access_from == EventAccess.PRIVATE and access_to == EventAccess.PUBLIC:
         remove_all_recipients_from_event(session_token, event_id)
 
@@ -294,6 +296,11 @@ def remove_all_recipients_from_event(session_token, event_id):
 
     recipient_event_associations = get_all_user_event_associations(
         event_id=event_id, role=UserEventRole.RECIPIENT
+    )
+
+    print(
+        "Length of recipient event associations: "
+        + str(len(recipient_event_associations))
     )
 
     # Delete all associations between recipients and the event
