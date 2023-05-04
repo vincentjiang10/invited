@@ -79,11 +79,11 @@ class EventMakerViewController: UIViewController {
         eventNameField.textAlignment = .left
         eventNameField.backgroundColor = UIColor.white
         eventNameField.font = UIFont.systemFont(ofSize: 14)
-        eventStartDateField.placeholder = "When does it start?"
+        eventStartDateField.placeholder = "When does it start? (MM/DD/YY)"
         eventStartDateField.textAlignment = .left
         eventStartDateField.backgroundColor = UIColor.white
         eventStartDateField.font = UIFont.systemFont(ofSize: 14)
-        eventEndDateField.placeholder = "When does it end?"
+        eventEndDateField.placeholder = "When does it end? (MM/DD/YY)"
         eventEndDateField.textAlignment = .left
         eventEndDateField.backgroundColor = UIColor.white
         eventEndDateField.font = UIFont.systemFont(ofSize: 14)

@@ -34,6 +34,7 @@ class ProfileViewController: UIViewController {
         
         title = "Edit My Profile"
         navigationController?.navigationBar.isTranslucent = true
+        navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .white
         
         back = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(goBack))

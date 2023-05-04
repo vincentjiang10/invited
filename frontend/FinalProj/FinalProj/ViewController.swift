@@ -22,7 +22,7 @@ class ViewController: UIViewController {
     
     let refreshControl = UIRefreshControl()
     
-    var filters: [String] = ["Public", "Invited", "Personal"]
+    var filters: [String] = ["Public", "Invited", "Created"]
     var newfilters: [String] = []
     
     let itemPadding: CGFloat = 10
@@ -33,6 +33,7 @@ class ViewController: UIViewController {
     let headerReuseID = "headerReuseID"
     let filtercellReuseID = "filterReuseID"
     
+    let searchController = UISearchController(searchResultsController: nil)
 
     override func viewDidLoad() {
         
@@ -45,7 +46,12 @@ class ViewController: UIViewController {
         navigationController?.navigationBar.titleTextAttributes = [ NSAttributedString.Key.foregroundColor : UIColor.black]
         navigationController?.navigationBar.backgroundColor = UIColor.clear
         navigationController?.setNavigationBarHidden(false, animated: true)
-
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        searchController.searchBar.delegate = self
+        
         view.backgroundColor = .white
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -74,7 +80,6 @@ class ViewController: UIViewController {
         filterCollectionView.delegate = self
         view.addSubview(filterCollectionView)
         
-        
         refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
         if #available(iOS 10.0, *) {
             tableView.refreshControl = refreshControl
@@ -91,10 +96,10 @@ class ViewController: UIViewController {
         let collectionViewPadding: CGFloat = 1
         
         NSLayoutConstraint.activate([
-            filterCollectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 15),
+            filterCollectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: -4),
             filterCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: collectionViewPadding),
             filterCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -collectionViewPadding),
-            filterCollectionView.heightAnchor.constraint(equalToConstant: 80)
+            filterCollectionView.heightAnchor.constraint(equalToConstant: 70)
         ])
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: filterCollectionView.bottomAnchor, constant: collectionViewPadding),
@@ -112,7 +117,7 @@ class ViewController: UIViewController {
 //            }
 //        }
         
-        newevents = [
+        eventData = [
             (Event(id: 0, name: "Picnic", start_time: "05/05/23", end_time: "05/06/23" , location: "Ho Plaza", access: "Public", description: "Picnic with everyone!")),
             (Event(id: 1, name: "Dance Party", start_time: "05/06/23", end_time: "05/06/23", location: "Willard", access: "Public", description: "Disco dance party in Willard.")),
             (Event(id: 2, name: "Basketball Game", start_time: "05/06/23", end_time: "05/07/23", location: "Gym", access: "Public", description: "Cornell v.s. Princeton. Come join and cheer on the team! Free shirts given too <3")),
@@ -122,6 +127,7 @@ class ViewController: UIViewController {
             (Event(id: 6, name: "Dyson Networking Hour", start_time: "05/15/23", end_time: "05/15/23", location: "Sage Hall", access: "Public", description: "Meet with fellow students and professors.")),
             (Event(id: 7, name: "Slug Club", start_time: "05/18/23", end_time: "05/19/23", location: "Hogwarts", access: "Public", description: "Social club for Professor Slughorn's favorite students!")),
             ]
+        newevents = eventData
         
     }
 
@@ -145,6 +151,12 @@ class ViewController: UIViewController {
     }
     
 }
+extension ViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        print(searchText)
+    }
+}
+
 
 extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {

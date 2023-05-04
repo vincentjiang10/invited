@@ -53,24 +53,24 @@ class EventTableViewCell: UITableViewCell {
     }
     
     func setUpConstraints() {
-        
-        NSLayoutConstraint.activate([
-            eventName.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
-            eventName.centerYAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 20),
-            eventName.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -50),
-        ])
-        
-        NSLayoutConstraint.activate([
-            eventDate.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
-            eventDate.centerYAnchor.constraint(equalTo: eventName.bottomAnchor, constant: 12)
-        ])
-        
+
         NSLayoutConstraint.activate([
             eventAcc.leadingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -90),
             eventAcc.centerYAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 20),
             eventAcc.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -10)
         ])
         
+        NSLayoutConstraint.activate([
+            eventName.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
+            eventName.centerYAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 20),
+            eventName.trailingAnchor.constraint(equalTo: eventAcc.leadingAnchor, constant: -10),
+        ])
+        
+        NSLayoutConstraint.activate([
+            eventDate.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
+            eventDate.centerYAnchor.constraint(equalTo: eventName.bottomAnchor, constant: 12)
+        ])
+
         NSLayoutConstraint.activate([
             eventDescripTitle.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
             eventDescripTitle.centerYAnchor.constraint(equalTo: eventDate.bottomAnchor, constant: 12),

@@ -40,6 +40,7 @@ class EventDetailViewController: UIViewController {
         navigationController?.navigationBar.titleTextAttributes = [ NSAttributedString.Key.foregroundColor : UIColor.black]
         navigationController?.navigationBar.backgroundColor = UIColor.clear
         navigationController?.setNavigationBarHidden(false, animated: true)
+        navigationItem.largeTitleDisplayMode = .never
 
         back = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(goBack))
         navigationItem.leftBarButtonItem = back
@@ -59,6 +60,9 @@ class EventDetailViewController: UIViewController {
         
         eventActualName.font = boldFont
         eventActualName.translatesAutoresizingMaskIntoConstraints = false
+        eventActualName.numberOfLines = 0
+        eventActualName.lineBreakMode = .byWordWrapping
+        eventActualName.sizeToFit()
         view.addSubview(eventActualName)
         
         eventDate.text = "Date:"
@@ -143,6 +147,7 @@ class EventDetailViewController: UIViewController {
         setupConstraints()
         
     }
+    
     func setupConstraints() {
         NSLayoutConstraint.activate([
             eventAcc.centerXAnchor.constraint(equalTo: view.centerXAnchor),
