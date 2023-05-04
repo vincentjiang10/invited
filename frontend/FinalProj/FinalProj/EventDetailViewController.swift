@@ -67,7 +67,7 @@ class EventDetailViewController: UIViewController {
         eventDate.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventDate)
         
-        eventActualDate.text = event.start_time + "-" + event.end_time
+        eventActualDate.text = event.start_time + " - " + event.end_time
         eventActualDate.textColor = .black
         
         let ArialFont = UIFontDescriptor(name: "Arial", size: 22.0)
@@ -95,8 +95,27 @@ class EventDetailViewController: UIViewController {
         eventActualLoc.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventActualLoc)
         
-        eventAcc.text = "This is a " + event.access + "event."
-        eventAcc.textColor = .gray
+        let attributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.red,
+        ]
+        
+        let attributesother: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.black,
+        ]
+        
+        let attributedStringofEventAcc = NSAttributedString(string: event.access.lowercased(), attributes: attributes)
+        
+        
+        
+        let combinedString = NSMutableAttributedString()
+        let beginString = NSAttributedString(string: "This is a ", attributes: attributesother)
+        let endString = NSAttributedString(string: " event.", attributes: attributesother)
+
+        combinedString.append(beginString)
+        combinedString.append(attributedStringofEventAcc)
+        combinedString.append(endString)
+
+        eventAcc.attributedText = combinedString
         eventAcc.font = UIFont.boldSystemFont(ofSize: 24)
         eventAcc.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventAcc)
@@ -126,8 +145,14 @@ class EventDetailViewController: UIViewController {
     }
     func setupConstraints() {
         NSLayoutConstraint.activate([
+            eventAcc.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            eventAcc.topAnchor.constraint(equalTo: view.topAnchor, constant: 120),
+            eventAcc.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
+        ])
+        
+        NSLayoutConstraint.activate([
             eventName.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            eventName.topAnchor.constraint(equalTo: view.topAnchor, constant: 120),
+            eventName.topAnchor.constraint(equalTo: eventAcc.bottomAnchor, constant: 15),
             eventName.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
         ])
         

@@ -184,7 +184,7 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.currentIndex = indexPath
-        let currentEvent = eventData[indexPath.row]
+        let currentEvent = newevents[indexPath.row]
         
         let vc = EventDetailViewController(event: currentEvent)
         
@@ -192,7 +192,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) ->
     Int {
-        return eventData.count
+        return newevents.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) ->
@@ -214,6 +214,11 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         return cell
         
         }
+    
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return false
+    }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 112
