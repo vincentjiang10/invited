@@ -71,7 +71,7 @@ class EventDetailViewController: UIViewController {
         eventDate.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(eventDate)
         
-        eventActualDate.text = event.start_time + " - " + event.end_time
+        eventActualDate.text = event.start_time + " - \n" + event.end_time
         eventActualDate.textColor = .black
         
         let ArialFont = UIFontDescriptor(name: "Arial", size: 22.0)
@@ -80,6 +80,9 @@ class EventDetailViewController: UIViewController {
         
         eventActualDate.font = boldFontDuplie
         eventActualDate.translatesAutoresizingMaskIntoConstraints = false
+        eventActualDate.numberOfLines = 0
+        eventActualDate.lineBreakMode = .byWordWrapping
+        eventActualDate.sizeToFit()
         view.addSubview(eventActualDate)
         
         eventLoc.text = "Location:"
