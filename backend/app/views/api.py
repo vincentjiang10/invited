@@ -175,6 +175,23 @@ def get_events_invited_to_user_by_token():
 
     return success_response(events_serialized, 200)
 
+# TODO: Delete this later
+@api_bp.route("/event/from/users/anonymized/", methods=["POST"])
+def create_anonymized_public_event():
+    """
+    Endpoint for creating an anonymized event
+    """
+    body = json.loads(request.data)
+
+    try:
+        created_event = event_dao.create_anonymized_event(body)
+    except DaoException as de:
+        return failure_response(de.message, de.code)
+
+    # Serialize event
+    event_serialized = event_schema.dump(created_event)
+
+    return success_response(event_serialized, 201)
 
 @api_bp.route("/events/from/users/", methods=["POST"])
 def create_event_by_token():

@@ -184,6 +184,25 @@ def create_event_by_session(session_token, body):
     return event
 
 
+# TODO: Delete in the future. Temporary for now until login in the frontend is implemented
+def create_anonymized_event(body):
+    """
+    Create an event when not logged in
+    """
+    try:
+        event = event_schema.load(body, unknown=EXCLUDE, session=db.session)
+    except ValidationError as exc:
+        raise DaoException(str(exc)) from exc
+
+    # Add to UserEvent an association object
+    user_event_association = UserEvent(event=event)
+
+    db.session.add(user_event_association)
+    db.session.commit()
+
+    return event
+
+
 def update_event_from_user_by_session(session_token, event_id, body):
     """
     Update event by current user
@@ -205,7 +224,7 @@ def update_event_from_user_by_session(session_token, event_id, body):
             body, unknown=EXCLUDE, session=db.session
         )
     except ValidationError as exc:
-        raise DaoException(f"Load error: {str(exc)}") from exc
+        raise DaoException(str(exc)) from exc
 
     # Access change side-effect if update is valid: changing from private to public removes all recipients
     if access_from == EventAccess.PRIVATE and access_to == EventAccess.PUBLIC:
@@ -307,3 +326,11 @@ def remove_all_recipients_from_event(session_token, event_id):
     for association in recipient_event_associations:
         db.session.delete(association)
     db.session.commit()
+
+
+def remove_event_by_session():
+    """
+    Delete an event in session
+    """
+
+    # NOTE: we need to also remove all user event associations related to this event
