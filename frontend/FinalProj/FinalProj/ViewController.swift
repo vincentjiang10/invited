@@ -49,6 +49,9 @@ class ViewController: UIViewController {
         
         super.viewDidLoad()
         title = "Event Feed"
+        if let user = UserDefaults.standard.string(forKey: "user_name"), !user.isEmpty {
+            title = user + "'s Event Feed"
+        }
         navigationController?.navigationBar.titleTextAttributes = [ NSAttributedString.Key.foregroundColor : UIColor.black]
         navigationController?.navigationBar.backgroundColor = UIColor.clear
         navigationController?.setNavigationBarHidden(false, animated: true)
@@ -395,9 +398,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             cell.contentView.layer.addSublayer(bottomBorder)
             
             return cell
-            
         }
-        
         
         func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
             return false
@@ -410,7 +411,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
 extension ViewController: ChangeTextDelegate {
     func changeText(nametext: String, emailtext: String) {
-        title = nametext + "'s Event Feed"
+        title = UserDefaults.standard.string(forKey: "user_name")! + "'s Event Feed"
         
     }
 }
