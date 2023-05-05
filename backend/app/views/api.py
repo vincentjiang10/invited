@@ -175,8 +175,9 @@ def get_events_invited_to_user_by_token():
 
     return success_response(events_serialized, 200)
 
+
 # TODO: Delete this later
-@api_bp.route("/event/from/users/anonymized/", methods=["POST"])
+@api_bp.route("/events/from/users/anonymized/", methods=["POST"])
 def create_anonymized_public_event():
     """
     Endpoint for creating an anonymized event
@@ -192,6 +193,7 @@ def create_anonymized_public_event():
     event_serialized = event_schema.dump(created_event)
 
     return success_response(event_serialized, 201)
+
 
 @api_bp.route("/events/from/users/", methods=["POST"])
 def create_event_by_token():
