@@ -10,7 +10,7 @@ import Foundation
 class NetworkManager {
     static let shared = NetworkManager()
 
-    var url = URL(string: "https://34.85.172.228/")!
+    var url = URL(string: "http://127.0.0.1:5000/api/events/public/to/users/")!
 
     func getAllEvents(completion: @escaping ([Event]) -> Void) {
         var request = URLRequest(url: url)

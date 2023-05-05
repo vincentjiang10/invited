@@ -136,10 +136,8 @@ class ProfileViewController: UIViewController {
             present(alert, animated: true, completion: {
                 return
             })
-        }
-        
-        if let text1 = nameField.text, let text2 = emailField.text
-              {
+        } else if let text1 = nameField.text, let text2 = emailField.text,
+              !text1.isEmpty && !text2.isEmpty {
             delegate?.changeText(nametext: text1, emailtext: text2)
             self.navigationController?.popViewController(animated: true)
         }

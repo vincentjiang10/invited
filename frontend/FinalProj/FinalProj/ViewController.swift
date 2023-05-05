@@ -11,7 +11,8 @@ class ViewController: UIViewController {
     
     let tableView = UITableView()
     var eventData: [Event] = []
-    var newevents: [Event] = []
+    var filteredEvents: [Event] = []
+    var filterActive = false
     
     var filterCollectionView: UICollectionView!
 
@@ -37,7 +38,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         
-        var url = URL(string: "https://34.85.172.228/")!
+        var url = URL(string: "http://127.0.0.1:5000/api/events/public/to/users/")!
         let formatParameter = URLQueryItem(name: "format", value: "json")
         url.append(queryItems: [formatParameter])
         
@@ -61,10 +62,10 @@ class ViewController: UIViewController {
         tableView.register(EventTableViewCell.self, forCellReuseIdentifier: reuseID)
         self.view.addSubview(tableView)
         
-        profileButton = UIBarButtonItem(image: UIImage(systemName: "person.circle"), style: .done, target: self, action: #selector(pushView))
+        profileButton = UIBarButtonItem(image: UIImage(systemName: "person.circle"), style: .done, target: self, action: #selector(pushProfileView))
         navigationItem.leftBarButtonItem = profileButton
         
-        addEventButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(popView))
+        addEventButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(pushMakeEventView))
         navigationItem.rightBarButtonItem = addEventButton
         
         let filterFlowLayout = UICollectionViewFlowLayout()
@@ -112,7 +113,7 @@ class ViewController: UIViewController {
     func bringEventData() {
 //        NetworkManager.shared.getAllEvents { eventors in
 //            DispatchQueue.main.async {
-//                self.newevents = eventors
+//                self.eventData = eventors
 //                self.tableView.reloadData()
 //            }
 //        }
@@ -127,14 +128,40 @@ class ViewController: UIViewController {
             (Event(id: 6, name: "Dyson Networking Hour", start_time: "05/15/23", end_time: "05/15/23", location: "Sage Hall", access: "Public", description: "Meet with fellow students and professors.")),
             (Event(id: 7, name: "Slug Club", start_time: "05/18/23", end_time: "05/19/23", location: "Hogwarts", access: "Public", description: "Social club for Professor Slughorn's favorite students!")),
             ]
-        newevents = eventData
         
+        
+    }
+    
+    func filter(filter: String) {
+        if filterActive {
+            if filter == "Public" {
+                for event in eventData {
+                    if event.access == "Public" {
+                        filteredEvents.append(event)
+                    }
+                }
+            } else if filter == "Invited" {
+                for event in eventData {
+                    if event.name == "Slug Club" {
+                        filteredEvents.append(event)
+                    }
+                }
+            } else if filter == "Created" {
+                for event in eventData {
+                    if event.name == "Slug Club" {
+                        filteredEvents.append(event)
+                    }
+                }
+            }
+        } else {
+            filteredEvents = eventData
+        }
     }
 
     @objc func refreshData() {
         NetworkManager.shared.getAllEvents { eventors in
             DispatchQueue.main.async {
-                self.newevents = eventors
+                self.eventData = eventors
                 self.tableView.reloadData()
                 self.refreshControl.endRefreshing()
             }
@@ -142,12 +169,12 @@ class ViewController: UIViewController {
 
     }
     
-    @objc func pushView() {
+    @objc func pushProfileView() {
         navigationController?.pushViewController(ProfileViewController(inputDelegate: self), animated: true)
     }
     
-    @objc func popView() {
-        present(EventMakerViewController(inputDelegate: self), animated: true)
+    @objc func pushMakeEventView() {
+        navigationController?.pushViewController(EventMakerViewController(inputDelegate: self), animated: true)
     }
     
 }
@@ -159,6 +186,10 @@ extension ViewController: UISearchBarDelegate {
 
 
 extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        1
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return filters.count
         }
@@ -175,12 +206,27 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, 
     }
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if let cell = collectionView.cellForItem(at: indexPath) as? FilterCollectionViewCell{
-            cell.label.backgroundColor = .systemCyan
-            if cell.label.text == "Public Events" {
-//                unimplemented need to implement filters
+            if filterActive {
+                cell.isSelected = false
+                filterActive = false
+                cell.label.backgroundColor = .systemMint
+            } else {
+                cell.isSelected = true
+                filterActive = true
+                cell.label.backgroundColor = .systemCyan
             }
+            
         }
     }
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        if let cell = collectionView.cellForItem(at: indexPath) as? FilterCollectionViewCell{
+            cell.isSelected = false
+            filterActive = false
+            cell.label.backgroundColor = .systemMint
+            
+        }
+    }
+    
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = (view.frame.width / 3.2)
@@ -196,7 +242,7 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.currentIndex = indexPath
-        let currentEvent = newevents[indexPath.row]
+        let currentEvent = eventData[indexPath.row]
         
         let vc = EventDetailViewController(event: currentEvent)
         
@@ -204,15 +250,26 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) ->
     Int {
-        return newevents.count
+        if filterActive {
+            // filteredEvents.count
+            return eventData.count
+        } else {
+            return eventData.count
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) ->
     UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: reuseID, for: indexPath) as! EventTableViewCell
-        let currentEvent = newevents[indexPath.row]
-        cell.configure(eventObject: currentEvent)
-            
+        if filterActive {
+            // filteredEvents[indexPath.row]
+            let currentEvent = eventData[indexPath.row]
+            cell.configure(eventObject: currentEvent)
+        }
+        else {
+            let currentEvent = eventData[indexPath.row]
+            cell.configure(eventObject: currentEvent)
+        }
         let topBorder = CALayer()
         topBorder.frame = CGRect(x: 0, y: 0, width: cell.contentView.frame.width, height: 0.5)
         topBorder.backgroundColor = UIColor.purple.cgColor

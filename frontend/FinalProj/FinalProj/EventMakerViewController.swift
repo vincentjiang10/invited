@@ -9,7 +9,7 @@ import UIKit
 
 class EventMakerViewController: UIViewController {
 
-    let titleof = UILabel()
+    var cancel = UIBarButtonItem()
     let eventNameLabel = UILabel()
     let eventStartDateLabel = UILabel()
     let eventEndDateLabel = UILabel()
@@ -43,10 +43,13 @@ class EventMakerViewController: UIViewController {
         
         view.backgroundColor = .white
         
-        titleof.text = "Make an Event!"
-        titleof.font = UIFont.boldSystemFont(ofSize: 24)
-        titleof.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(titleof)
+        title = "Make an Event!"
+        navigationController?.navigationBar.isTranslucent = true
+        navigationItem.largeTitleDisplayMode = .never
+        view.backgroundColor = .white
+        
+        cancel = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(cancelEvent))
+        navigationItem.leftBarButtonItem = cancel
         
         
         saveButton.setTitle("Save", for: .normal)
@@ -192,13 +195,8 @@ class EventMakerViewController: UIViewController {
     func setupConstraints () {
         
         NSLayoutConstraint.activate([
-            titleof.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleof.topAnchor.constraint(equalTo: view.topAnchor, constant: 30)
-        ])
-        
-        NSLayoutConstraint.activate([
             eventNameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            eventNameLabel.topAnchor.constraint(equalTo: titleof.bottomAnchor, constant: 40),
+            eventNameLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 120),
             eventNameLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20)
         ])
         
@@ -281,20 +279,40 @@ class EventMakerViewController: UIViewController {
         // rotating view, for selecting from a list of items
         // uipicker view for dropdown menu
     }
+    func isValidDateFormat(_ dateString: String) -> Bool {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM/dd/yy"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        return dateFormatter.date(from: dateString) != nil
+    }
+    
+    @objc func cancelEvent() {
+        self.navigationController?.popViewController(animated: true)
+    }
 
     @objc func savenew() {
         if let text1 = eventNameField.text, let text2 = eventStartDateField.text, let text3 = eventEndDateField.text, let text4 = eventDescriptionField.text, let text5 = eventLocField.text, let text6 = eventAccField.text,
            text1.isEmpty || text2.isEmpty || text3.isEmpty || text4.isEmpty || text5.isEmpty || text6.isEmpty {
             let alert = UIAlertController(title: "Error!", message: "Please fill out all event details!", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Okay!", style: .default, handler: nil))
             present(alert, animated: true, completion: {
                 return
             })
         }
         
-        if let text1 = eventNameField.text, let text2 = eventStartDateField.text, let text3 = eventEndDateField.text, let text4 = eventLocField.text, let text5 = eventAccField.text, let text6 = eventDescriptionField.text
+        else if let text1 = eventStartDateField.text, let text2 = eventEndDateField.text, !isValidDateFormat(text1) || !isValidDateFormat(text2)
+        {
+            let alert = UIAlertController(title: "Error!", message: "Please write the date correctly in MM/DD/YY form!", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Okay!", style: .default, handler: nil))
+            present(alert, animated: true, completion: {
+                return
+        })
+                    }
+        
+        else if let text1 = eventNameField.text, let text2 = eventStartDateField.text, let text3 = eventEndDateField.text, let text4 = eventLocField.text, let text5 = eventAccField.text, let text6 = eventDescriptionField.text, isValidDateFormat(text2) && isValidDateFormat(text3)
               {
             delegate?.createEvent(nametext: text1, starttime: text2, endtime: text3, loc: text4, acc: text5, descrip: text6)
-            self.dismiss(animated: true)
+            self.navigationController?.popViewController(animated: true)
         }
     }
 }
