@@ -2,7 +2,7 @@ from marshmallow import EXCLUDE, ValidationError
 from sqlalchemy import and_
 from app import db
 from app.dao import DaoException
-from app.schemas import EventSchema
+from app.schemas import EventSchemas
 from app.models import Event, UserEvent
 from .user_dao import get_user_by_session_token, get_user_by_email
 
@@ -13,7 +13,7 @@ from .user_dao import get_user_by_session_token, get_user_by_email
 # TODO: Investigate how to report info from calling exception (DaoException from exc)
 
 # Initialize schema objects
-event_schema = EventSchema()
+event_schema = EventSchemas.event_schema
 
 # Enums
 UserEventRole = UserEvent.Role
@@ -165,13 +165,14 @@ def create_event_by_session(session_token, body):
     """
     Create an event by current user
     """
+    # Check whether user is logged in
+    user = get_user_by_session_token(session_token)
+
     try:
         # event is of instance Event
         event = event_schema.load(body, unknown=EXCLUDE, session=db.session)
     except ValidationError as exc:
         raise DaoException(str(exc)) from exc
-
-    user = get_user_by_session_token(session_token)
 
     # Add to UserEvent an association object
     user_event_association = UserEvent(
@@ -217,11 +218,10 @@ def update_event_from_user_by_session(session_token, event_id, body):
     access_to = EventAccess[body.get("access")]
 
     try:
-        # Pass existing instance
-        event_schema_of_instance = EventSchema(instance=user_event)
         # event is of instance Event
-        updated_event = event_schema_of_instance.load(
-            body, unknown=EXCLUDE, session=db.session
+        # Instance is passed to prevent duplicate creation of new event
+        updated_event = event_schema.load(
+            body, unknown=EXCLUDE, instance=user_event, partial=True, session=db.session
         )
     except ValidationError as exc:
         raise DaoException(str(exc)) from exc

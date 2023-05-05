@@ -8,10 +8,10 @@ from app.auth import (
     new_session_time,
     encrypt_password,
 )
-from app.schemas import UserSchema
+from app.schemas import UserSchemas
 
 # Initialize schema object
-user_schema = UserSchema()
+user_schema = UserSchemas.user_schema
 
 
 def _expire_session(user):
@@ -43,12 +43,12 @@ def get_user_by_id(user_id):
     return user
 
 
-def get_user_by_email(email):
+def get_user_by_email(user_email):
     """
     Returns user by email if user exists, otherwise returns error message. Also returns status code
     """
 
-    user = User.query.filter(User.email == email).first()
+    user = User.query.filter(User.email == user_email).first()
     if user is None:
         raise DaoException("User not found with email", 404)
     return user
@@ -74,19 +74,6 @@ def get_user_by_session_token(session_token, expire_session=False):
     db.session.commit()
 
     return user
-
-
-# TODO: Include image?
-def get_user_secret_info(session_token):
-    """
-    Returns user sensitive information as dictionary
-    """
-    user = get_user_by_session_token(session_token)
-
-    return {
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-    }
 
 
 def get_user_by_update_token(update_token, renew_session=False):
@@ -154,6 +141,34 @@ def create_user(body):
 
     # Return serialized user
     return user
+
+
+def get_all_users():
+    """
+    Get all users
+    """
+    users = db.session.query(User).all()
+
+    return users
+
+
+# TODO: Think about the case of passwords and emails and whether more logic is required for editing these fields
+def update_user_profile_by_session(session_token, body):
+    """
+    Updates the current user profile information
+    """
+
+    try:
+        user = get_user_by_session_token(session_token)
+
+        # TODO: prevent update of some fields! (session_token, etc)
+        _ = user_schema.load(
+            body, unknown=EXCLUDE, instance=user, partial=True, session=db.session
+        )
+    except ValidationError as exc:
+        raise DaoException(str(exc)) from exc
+
+    db.session.commit()
 
 
 def verify_credentials(body):
