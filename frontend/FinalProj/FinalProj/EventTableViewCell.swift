@@ -68,7 +68,8 @@ class EventTableViewCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             eventDate.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 30),
-            eventDate.centerYAnchor.constraint(equalTo: eventName.bottomAnchor, constant: 12)
+            eventDate.centerYAnchor.constraint(equalTo: eventName.bottomAnchor, constant: 12),
+            eventDate.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -10)
         ])
 
         NSLayoutConstraint.activate([

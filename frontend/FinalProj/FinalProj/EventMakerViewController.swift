@@ -280,10 +280,11 @@ class EventMakerViewController: UIViewController {
         // uipicker view for dropdown menu
     }
     func isValidDateFormat(_ dateString: String) -> Bool {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MM/dd/yy"
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        return dateFormatter.date(from: dateString) != nil
+//        let dateFormatter = DateFormatter()
+//        dateFormatter.dateFormat = "MM/dd/yy"
+//        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+//        return dateFormatter.date(from: dateString) != nil
+        true
     }
     
     @objc func cancelEvent() {

@@ -20,20 +20,22 @@ class NetworkManager {
             if let data = data {
                 do {
                     let decoder = JSONDecoder()
-                    let response = try decoder.decode(EventResponse.self, from: data)
-                    completion(response.events)
+                    let response = try decoder.decode([Event].self, from: data)
+                    completion(response)
                 }
                 catch (let error) {
-                    print(error.localizedDescription)
+                    print(error)
                 }
             }
 
         }
         task.resume()
     }
+    
+    var urll = URL(string: "http://127.0.0.1:5000/api/events/from/users/anonymized/")!
 
     func createEvent(nametext: String, starttime: String, endtime: String, loc: String, acc: String, descrip: String, completion: @escaping (Event) -> Void) {
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: urll)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 

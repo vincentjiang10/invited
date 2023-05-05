@@ -111,24 +111,12 @@ class ViewController: UIViewController {
         
     }
     func bringEventData() {
-//        NetworkManager.shared.getAllEvents { eventors in
-//            DispatchQueue.main.async {
-//                self.eventData = eventors
-//                self.tableView.reloadData()
-//            }
-//        }
-        
-        eventData = [
-            (Event(id: 0, name: "Picnic", start_time: "05/05/23", end_time: "05/06/23" , location: "Ho Plaza", access: "Public", description: "Picnic with everyone!")),
-            (Event(id: 1, name: "Dance Party", start_time: "05/06/23", end_time: "05/06/23", location: "Willard", access: "Public", description: "Disco dance party in Willard.")),
-            (Event(id: 2, name: "Basketball Game", start_time: "05/06/23", end_time: "05/07/23", location: "Gym", access: "Public", description: "Cornell v.s. Princeton. Come join and cheer on the team! Free shirts given too <3")),
-            (Event(id: 3, name: "Movie hangout?", start_time: "05/07/23", end_time: "05/07/23", location: "Cornell Cinema", access: "Public", description: "Anyone want to watch a film with me?")),
-            (Event(id: 4, name: "BBQ", start_time: "05/05/23", end_time: "05/09/23", location: "The Wilderness", access: "Public", description: "BBQ at the slope.")),
-            (Event(id: 5, name: "New SZA Album Listening Party!!", start_time: "05/10/23", end_time: "05/12/23", location: "Barton Hall", access: "Public", description: "Vibe to the new SZA album at Goldwin. Skip Slope Day lol.")),
-            (Event(id: 6, name: "Dyson Networking Hour", start_time: "05/15/23", end_time: "05/15/23", location: "Sage Hall", access: "Public", description: "Meet with fellow students and professors.")),
-            (Event(id: 7, name: "Slug Club", start_time: "05/18/23", end_time: "05/19/23", location: "Hogwarts", access: "Public", description: "Social club for Professor Slughorn's favorite students!")),
-            ]
-        
+        NetworkManager.shared.getAllEvents { events in
+            DispatchQueue.main.async {
+                self.eventData = events
+                self.tableView.reloadData()
+            }
+        }
         
     }
     
@@ -159,13 +147,14 @@ class ViewController: UIViewController {
     }
 
     @objc func refreshData() {
-        NetworkManager.shared.getAllEvents { eventors in
+        NetworkManager.shared.getAllEvents { events in
             DispatchQueue.main.async {
-                self.eventData = eventors
+                self.eventData = events
                 self.tableView.reloadData()
                 self.refreshControl.endRefreshing()
             }
         }
+        print(eventData.count)
 
     }
     
