@@ -75,6 +75,7 @@ class EventMakerViewController: UIViewController {
         eventLocField.leftViewMode = .always
         eventAccField.leftView = paddingView4
         eventAccField.leftViewMode = .always
+        eventAccField.autocapitalizationType = .allCharacters
         eventDescriptionField.leftView = paddingView5
         eventDescriptionField.leftViewMode = .always
         
@@ -280,11 +281,20 @@ class EventMakerViewController: UIViewController {
         // uipicker view for dropdown menu
     }
     func isValidDateFormat(_ dateString: String) -> Bool {
-//        let dateFormatter = DateFormatter()
-//        dateFormatter.dateFormat = "MM/dd/yy"
-//        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-//        return dateFormatter.date(from: dateString) != nil
-        true
+        let dateFormat = "MM/dd/yy'T'HH:mm:ss"
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = dateFormat
+        
+        if let date = dateFormatter.date(from: dateString) {
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    func isPublicOrPrivate(_ accessString: String) -> Bool {
+        let text = accessString.uppercased()
+        return text == "PUBLIC" || text == "PRIVATE"
     }
     
     @objc func cancelEvent() {
@@ -303,14 +313,22 @@ class EventMakerViewController: UIViewController {
         
         else if let text1 = eventStartDateField.text, let text2 = eventEndDateField.text, !isValidDateFormat(text1) || !isValidDateFormat(text2)
         {
-            let alert = UIAlertController(title: "Error!", message: "Please write the date correctly in MM/DD/YY form!", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Error!", message: "Please write the date correctly in MM/DD/YYT__:__:__ form!", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Okay!", style: .default, handler: nil))
             present(alert, animated: true, completion: {
                 return
         })
                     }
+        else if let text1 = eventAccField.text, !isPublicOrPrivate(text1) {
+            let alert = UIAlertController(title: "Error!", message: "Please write either PUBLIC or PRIVATE in the correct field", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Okay!", style: .default, handler: nil))
+            present(alert, animated: true, completion: {
+                return
+        })
+            
+        }
         
-        else if let text1 = eventNameField.text, let text2 = eventStartDateField.text, let text3 = eventEndDateField.text, let text4 = eventLocField.text, let text5 = eventAccField.text, let text6 = eventDescriptionField.text, isValidDateFormat(text2) && isValidDateFormat(text3)
+        else if let text1 = eventNameField.text, let text2 = eventStartDateField.text, let text3 = eventEndDateField.text, let text4 = eventLocField.text, let text5 = eventAccField.text, let text6 = eventDescriptionField.text, isValidDateFormat(text2) && isValidDateFormat(text3) && isPublicOrPrivate(text5)
               {
             delegate?.createEvent(nametext: text1, starttime: text2, endtime: text3, loc: text4, acc: text5, descrip: text6)
             self.navigationController?.popViewController(animated: true)
