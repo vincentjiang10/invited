@@ -9,16 +9,19 @@ import UIKit
 
 class ViewController: UIViewController {
     
+    
     let tableView = UITableView()
     var eventData: [Event] = []
     var filteredEvents: [Event] = []
     var createdEvents: [Event] = []
     var invitedEvents: [Event] = []
+    var searchedEvents: [Event] = []
     var filterActive = false
+    var searchActive = false
     var activeFilterName: String?
     
     var filterCollectionView: UICollectionView!
-
+    
     let reuseID = "my cell"
     var currentIndex = IndexPath()
     var profileButton = UIBarButtonItem()
@@ -37,7 +40,7 @@ class ViewController: UIViewController {
     let filtercellReuseID = "filterReuseID"
     
     let searchController = UISearchController(searchResultsController: nil)
-
+    
     override func viewDidLoad() {
         
         var url = URL(string: "http://35.238.52.218/api/events/public/to/users/")!
@@ -54,6 +57,11 @@ class ViewController: UIViewController {
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         searchController.searchBar.delegate = self
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.enablesReturnKeyAutomatically = false
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search through Events"
+        definesPresentationContext = true
         
         view.backgroundColor = .white
         
@@ -89,10 +97,8 @@ class ViewController: UIViewController {
         } else {
             tableView.addSubview(refreshControl)
         }
-        
         bringEventData()
         setupConstraints()
-        
     }
     
     func setupConstraints() {
@@ -120,6 +126,18 @@ class ViewController: UIViewController {
             }
         }
     }
+    @objc func refreshData() {
+        NetworkManager.shared.getAllEvents { events in
+            DispatchQueue.main.async {
+                self.eventData = events
+                self.tableView.reloadData()
+                self.refreshControl.endRefreshing()
+            }
+        }
+        print(eventData.count)
+        
+    }
+    // Filtering -_-
     func filter() {
         if filterActive {
             if activeFilterName == "Public" {
@@ -136,19 +154,7 @@ class ViewController: UIViewController {
             refreshData()
         }
     }
-
-    @objc func refreshData() {
-        NetworkManager.shared.getAllEvents { events in
-            DispatchQueue.main.async {
-                self.eventData = events
-                self.tableView.reloadData()
-                self.refreshControl.endRefreshing()
-            }
-        }
-        print(eventData.count)
-
-    }
-    
+    // Functions to push new VCs to user >w<
     @objc func pushProfileView() {
         navigationController?.pushViewController(ProfileViewController(inputDelegate: self), animated: true)
     }
@@ -156,15 +162,91 @@ class ViewController: UIViewController {
     @objc func pushMakeEventView() {
         navigationController?.pushViewController(EventMakerViewController(inputDelegate: self), animated: true)
     }
-    
 }
 
-extension ViewController: UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        print(searchText)
+extension ViewController: UISearchBarDelegate, UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        let searchText = searchController.searchBar.text!
+        if filterActive {
+            if activeFilterName == "Created" {
+                if !searchText.isEmpty {
+                    searchActive = true
+                    searchedEvents.removeAll()
+                    for event in createdEvents {
+                        if event.name.lowercased().contains(searchText.lowercased()) {
+                            searchedEvents.append(event)
+                        }
+                    }
+                    eventData = searchedEvents
+                } else if searchText.isEmpty {
+                    searchActive = false
+                    searchedEvents.removeAll()
+                    searchedEvents = createdEvents
+                    eventData = searchedEvents
+                }
+            }
+            else if activeFilterName == "Public" {
+                if !searchText.isEmpty {
+                    searchActive = true
+                    searchedEvents.removeAll()
+                    for event in filteredEvents {
+                        if event.name.lowercased().contains(searchText.lowercased()) {
+                            searchedEvents.append(event)
+                        }
+                    }
+                    eventData = searchedEvents
+                } else if searchText.isEmpty {
+                    searchActive = false
+                    searchedEvents.removeAll()
+                    searchedEvents = eventData
+                    eventData = searchedEvents
+                }
+            }
+            else if activeFilterName == "Invited" {
+                if !searchText.isEmpty {
+                    searchActive = true
+                    searchedEvents.removeAll()
+                    searchedEvents = []
+                } else if searchText.isEmpty {
+                    searchActive = false
+                    searchedEvents.removeAll()
+                    searchedEvents = []
+                    eventData = searchedEvents
+                }
+            }
+        }
+        else if !filterActive {
+            if !searchText.isEmpty {
+                searchActive = true
+                searchedEvents.removeAll()
+                for event in eventData {
+                    if event.name.lowercased().contains(searchText.lowercased()) {
+                        searchedEvents.append(event)
+                    }
+                }
+            } else if searchText.isEmpty {
+                searchActive = false
+                searchedEvents.removeAll()
+                searchedEvents = eventData
+                eventData = searchedEvents
+            }
+        }
+        else {
+            searchActive = false
+            searchedEvents.removeAll()
+            searchedEvents = eventData
+            eventData = searchedEvents
+        }
+        tableView.reloadData()
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchActive = false
+        searchedEvents.removeAll()
+        refreshData()
+        tableView.reloadData()
     }
 }
-
 
 extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -237,13 +319,12 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegate, 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: 0, height: 0)
     }
-    
 }
         
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.currentIndex = indexPath
-        if filterActive {
+        if filterActive && !searchActive {
             if activeFilterName == "Public" {
                 let currentEvent = filteredEvents[indexPath.row]
                 let vc = EventDetailViewController(event: currentEvent)
@@ -254,19 +335,22 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
                 let currentEvent = createdEvents[indexPath.row]
                 let vc = EventDetailViewController(event: currentEvent)
                 navigationController?.pushViewController(vc, animated: true)
-                
-            } else {
+            }
+        }
+        else if searchActive {
+            let currentEvent = searchedEvents[indexPath.row]
+            let vc = EventDetailViewController(event: currentEvent)
+            navigationController?.pushViewController(vc, animated: true)
+        }
+        else {
                 let currentEvent = eventData[indexPath.row]
-                
                 let vc = EventDetailViewController(event: currentEvent)
-                
                 navigationController?.pushViewController(vc, animated: true)
             }
         }
-    }
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) ->
         Int {
-            if filterActive {
+            if filterActive && !searchActive {
                 if activeFilterName == "Public" {
                     return filteredEvents.count
                 } else if activeFilterName == "Invited" {
@@ -275,6 +359,8 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
                     return createdEvents.count
                 }
                 
+            } else if searchActive {
+                return searchedEvents.count
             }
             return eventData.count
         }
@@ -282,17 +368,17 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) ->
         UITableViewCell {
             let cell = tableView.dequeueReusableCell(withIdentifier: reuseID, for: indexPath) as! EventTableViewCell
-            if filterActive {
+            if filterActive && !searchActive {
                 if activeFilterName == "Public" {
                     let currentEvent = filteredEvents[indexPath.row]
                     cell.configure(eventObject: currentEvent)
-                } else if activeFilterName == "Invited" {
-                    let currentEvent = invitedEvents[indexPath.row]
-                    cell.configure(eventObject: currentEvent)
-                } else if activeFilterName == "Created" {
+                } else if activeFilterName == "Created" && createdEvents.count != 0 {
                     let currentEvent = createdEvents[indexPath.row]
                     cell.configure(eventObject: currentEvent)
                 }
+            } else if searchActive {
+                let currentEvent = searchedEvents[indexPath.row]
+                cell.configure(eventObject: currentEvent)
             }
             else {
                 let currentEvent = eventData[indexPath.row]
