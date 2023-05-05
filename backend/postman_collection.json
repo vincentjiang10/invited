@@ -12,7 +12,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:5000/api/",
+					"raw": "http://127.0.0.1:8000/api/",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -20,7 +20,7 @@
 						"0",
 						"1"
 					],
-					"port": "5000",
+					"port": "8000",
 					"path": [
 						"api",
 						""
@@ -423,13 +423,13 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "055c59b96099b15715752b171281326a9355035f",
+						"value": "08832265107a97cbd278828d5b323cbfdd567485",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Another test event\",\n    \"location\": \"A test location\",\n    \"start_time\": \"2023-04-30T12:00:00\",\n    \"end_time\": \"2023-04-30T1:00:00\",\n    \"description\": \"Hello\",\n    \"access\": \"publ\"\n}",
+					"raw": "{\n    \"name\": \"Another test event 2\",\n    \"location\": \"Another test location\",\n    \"start_time\": \"2023-04-30T12:00:00\",\n    \"end_time\": \"2023-04-30T1:00:00\",\n    \"description\": \"Hello\",\n    \"access\": \"PRIVATE\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -787,6 +787,72 @@
 		},
 		{
 			"name": "Remove recipient",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 6d7e0f7c592e508b05982a983d1257ae2d34c595",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{events}}from/users/",
+					"host": [
+						"{{events}}from"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Anonymized event creation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 6d7e0f7c592e508b05982a983d1257ae2d34c595",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{events}}from/users/",
+					"host": [
+						"{{events}}from"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Event deletion",
 			"request": {
 				"method": "POST",
 				"header": [

@@ -12,6 +12,8 @@ user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 
 
+# TODO: Add security (https) to vm + research how to deploy production instance of server
+
 @api_bp.route("/")
 def hello():
     """

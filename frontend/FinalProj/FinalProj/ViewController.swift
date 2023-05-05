@@ -38,7 +38,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         
-        var url = URL(string: "http://127.0.0.1:5000/api/events/public/to/users/")!
+        var url = URL(string: "http://35.238.52.218/api/events/public/to/users/")!
         let formatParameter = URLQueryItem(name: "format", value: "json")
         url.append(queryItems: [formatParameter])
         
