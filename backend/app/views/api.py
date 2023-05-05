@@ -94,10 +94,10 @@ def user_info():
     try:
         session_token = extract_token(request.headers)
         user_info = user_dao.get_user_secret_info(session_token)
+
+        return success_response(user_info)
     except DaoException as de:
         return failure_response(de.message, de.code)
-
-    return success_response(user_info)
 
 
 @api_bp.route("/users/session/", methods=["POST"])
@@ -237,7 +237,7 @@ def update_event_by_id(event_id):
     return success_response(event_serialized, 200)
 
 
-@api_bp.route("/events/<int:event_id>/from/users/", methods=["POST"])
+@api_bp.route("/events/<int:event_id>/from/users/add/", methods=["POST"])
 def add_user_to_event(event_id):
     """
     Endpoint for adding a user to an event by email
@@ -257,7 +257,7 @@ def add_user_to_event(event_id):
     return success_response(event_serialized, 200)
 
 
-@api_bp.route("/events/<int:event_id>/from/users/", methods=["DELETE"])
+@api_bp.route("/events/<int:event_id>/from/users/remove/", methods=["DELETE"])
 def delete_user_from_event(event_id):
     """
     Endpoint for removing a user from an event by email
@@ -276,7 +276,7 @@ def delete_user_from_event(event_id):
     return success_response(None, 204)
 
 
-@api_bp.route("/events/<int:event_id>/from/users/", methods=["DELETE"])
+@api_bp.route("/events/<int:event_id>/from/users/all/", methods=["DELETE"])
 def delete_all_recipients_from_event(event_id):
     """
     Endpoint for removing all recipients from an event
@@ -285,6 +285,21 @@ def delete_all_recipients_from_event(event_id):
         session_token = extract_token(request.headers)
 
         event_dao.remove_all_recipients_from_event(session_token, event_id)
+    except DaoException as de:
+        return failure_response(de.message, de.code)
+
+    return success_response(None, 204)
+
+
+@api_bp.route("/events/<int:event_id>/from/users/", methods=["DELETE"])
+def delete_event_from_user_by_session(event_id):
+    """
+    Delete an event from the current user
+    """
+    try:
+        session_token = extract_token(request.headers)
+
+        event_dao.remove_event_by_session(session_token, event_id)
     except DaoException as de:
         return failure_response(de.message, de.code)
 

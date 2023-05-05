@@ -313,24 +313,29 @@ def remove_all_recipients_from_event(session_token, event_id):
         user_id=user.id, event_id=event_id, role=UserEventRole.CREATOR
     )
 
-    recipient_event_associations = get_all_user_event_associations(
+    recipient_event_associations_query = get_user_event_association_query(
         event_id=event_id, role=UserEventRole.RECIPIENT
     )
 
-    print(
-        "Length of recipient event associations: "
-        + str(len(recipient_event_associations))
-    )
-
     # Delete all associations between recipients and the event
-    for association in recipient_event_associations:
-        db.session.delete(association)
+    recipient_event_associations_query.delete(synchronize_session=False)
+
     db.session.commit()
 
 
-def remove_event_by_session():
+def remove_event_by_session(session_token, event_id):
     """
     Delete an event in session
     """
+    user = get_user_by_session_token(session_token)
+    user_event = get_first_user_event(
+        user_id=user.id, event_id=event_id, role=UserEventRole.CREATOR
+    )
 
-    # NOTE: we need to also remove all user event associations related to this event
+    user_event_associations_query = get_user_event_association_query(event_id=event_id)
+
+    # Delete all associations, including between recipients and creator
+    user_event_associations_query.delete(synchronize_session=False)
+
+    db.session.delete(user_event)
+    db.session.commit()
