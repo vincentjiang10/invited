@@ -28,7 +28,7 @@ class ProfileViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
         navigationController?.navigationBar.backgroundColor = UIColor.clear
         navigationController?.setNavigationBarHidden(false, animated: true)
         
@@ -43,7 +43,6 @@ class ProfileViewController: UIViewController {
         savebutt = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(saveChanges))
         navigationItem.rightBarButtonItem = savebutt
         
-        
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: nameField.frame.height))
         let paddingView1 = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: nameField.frame.height))
         
@@ -52,14 +51,29 @@ class ProfileViewController: UIViewController {
         emailField.leftView = paddingView1
         emailField.leftViewMode = .always
         
-        nameField.placeholder = "Name"
+        
+        
+        if let name = UserDefaults.standard.string(forKey: "user_name") {
+            nameField.placeholder = name
+        } else {
+            nameField.placeholder = "Name"
+        }
+        
         nameField.textAlignment = .left
         nameField.backgroundColor = UIColor.white
         nameField.font = UIFont.systemFont(ofSize: 14)
-        emailField.placeholder = "Add your Email"
+        
+        
+        
+        if let email = UserDefaults.standard.string(forKey: "user_email") {
+            emailField.placeholder = email
+        } else {
+            emailField.placeholder = "Add your Email"
+        }
         emailField.textAlignment = .left
         emailField.backgroundColor = UIColor.white
         emailField.font = UIFont.systemFont(ofSize: 14)
+        emailField.autocapitalizationType = .none 
         
         nameField.borderStyle = .roundedRect
         nameField.layer.cornerRadius = 9
@@ -124,20 +138,30 @@ class ProfileViewController: UIViewController {
         
     }
     
+    func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
+    }
+
+    
     @objc func goBack() {
         self.navigationController?.popViewController(animated: true)
     }
 
     @objc func saveChanges() {
         if let text1 = nameField.text, let text2 = emailField.text,
-           text1.isEmpty || text2.isEmpty {
+           text1.isEmpty || text2.isEmpty || !isValidEmail(text2) {
             let alert = UIAlertController(title: "Error!", message: "Please fill out your name and email properly.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Okay!", style: .default, handler: nil))
             present(alert, animated: true, completion: {
                 return
             })
         } else if let text1 = nameField.text, let text2 = emailField.text,
-              !text1.isEmpty && !text2.isEmpty {
+              !text1.isEmpty && !text2.isEmpty && isValidEmail(text2){
+            UserDefaults.standard.set(text1, forKey: "user_name")
+            UserDefaults.standard.set(text2, forKey: "user_email")
+            nameField.resignFirstResponder()
             delegate?.changeText(nametext: text1, emailtext: text2)
             self.navigationController?.popViewController(animated: true)
         }
