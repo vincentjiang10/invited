@@ -10,7 +10,7 @@ import Foundation
 class NetworkManager {
     static let shared = NetworkManager()
 
-    var url = URL(string: "http://127.0.0.1:5000/api/events/public/to/users/")!
+    var url = URL(string: "http://35.238.52.218/api/events/public/to/users/")!
 
     func getAllEvents(completion: @escaping ([Event]) -> Void) {
         var request = URLRequest(url: url)
@@ -32,7 +32,7 @@ class NetworkManager {
         task.resume()
     }
     
-    var urll = URL(string: "http://127.0.0.1:5000/api/events/from/users/anonymized/")!
+    var urll = URL(string: "http://35.238.52.218/api/events/from/users/anonymized/")!
 
     func createEvent(nametext: String, starttime: String, endtime: String, loc: String, acc: String, descrip: String, completion: @escaping (Event) -> Void) {
         var request = URLRequest(url: urll)
