@@ -13,6 +13,14 @@
 
 # Features
 
+- :mag: **Search Events:** Use the searchbar to go through public, invited, and created events!
+
+- :bust_in_silhouette: **Create a Profile:** Save your name and email!
+
+- :tada::busts_in_silhouette: **Make Events:** Host events and share them!
+
+- :arrows_counterclockwise: **Refresh:** Swipe up to see new events added to your event feed! 
+
 ## Frontend
 
 ## Backend
