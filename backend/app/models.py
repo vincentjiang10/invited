@@ -109,3 +109,18 @@ class RecipientList(db.Model):
 
 
 # TODO: Community model? Implement events in a community, which can be assessed and seen by only users within that community? Can be public or more specific
+
+
+class Asset(db.Model):
+    """
+    Asset model (for images)
+    """
+    
+    __tablename__ = "asset"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    base_url = db.Column(db.String, nullable=False)
+    salt = db.Column(db.String, nullable=False)
+    extension = db.Column(db.String, nullable=False)
+    width = db.Column(db.Integer, nullable=False)
+    height = db.Column(db.Integer, nullable=False)
+    creation_date = db.Column(db.DateTime, nullable=False)
