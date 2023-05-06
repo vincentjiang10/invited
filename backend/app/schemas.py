@@ -1,9 +1,41 @@
 from marshmallow import fields
 from marshmallow_enum import EnumField
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from app.models import User, Event, RecipientList
+from app.models import User, Event, RecipientList, Asset
 
 
+class AssetSchema(SQLAlchemyAutoSchema):
+    """
+    A Marshmallow schema that is used to validate input data and serialize/deserialize
+    instances of the Asset SQLAlchemy model.
+    """
+    
+    class Meta:
+        model = Asset
+        load_instance = True
+    
+    id = fields.Integer(dump_only=True)
+    user_id = fields.Integer()
+    base_url = fields.String()
+    salt = fields.String()
+    extension = fields.String()
+    width = fields.String()
+    height = fields.String()
+    creation_date = fields.DateTime(required=True)
+    
+class AssetSchemas:
+    """
+    A few Asset schemas
+    """
+
+    _asset_exclude_list = []
+    _assets_exclude_list = _asset_exclude_list
+    asset_schema = AssetSchema(exclude=_asset_exclude_list)
+    assets_schema = AssetSchema(
+        many=True, exclude=_assets_exclude_list
+    )
+    
+    
 class UserSchema(SQLAlchemyAutoSchema):
     """
     A Marshmallow schema that is used to validate input data and serialize/deserialize
@@ -25,20 +57,21 @@ class UserSchema(SQLAlchemyAutoSchema):
     session_token = fields.String(dump_only=True)
     session_expiration = fields.String(dump_only=True)
     update_token = fields.String(dump_only=True)
-
+    profile_picture = fields.Nested(AssetSchema, only=["id", "base_url", "extension"])
 
 class UserSchemas:
     """
     A few User schemas
     """
 
-    _user_exclude_list = []
+    _user_exclude_list = [
+        "profile_picture"
+    ]
     _users_exclude_list = _user_exclude_list
     user_schema = UserSchema(exclude=_user_exclude_list)
     users_schema = UserSchema(many=True, exclude=_users_exclude_list)
 
     _user_private_exclude_list = [
-        "password_digest",
         "session_token",
         "session_expiration",
         "update_token",
@@ -49,7 +82,6 @@ class UserSchemas:
 
     # TODO: public info is the same as user private info for now
     _user_public_exclude_list = [
-        "password_digest",
         "session_token",
         "session_expiration",
         "update_token",
@@ -77,7 +109,6 @@ class EventSchema(SQLAlchemyAutoSchema):
     description = fields.String(required=True)
     access = EnumField(Event.Access, required=True)
 
-
 class EventSchemas:
     """
     A few Event schemas
@@ -102,7 +133,6 @@ class RecipientListSchema(SQLAlchemyAutoSchema):
     id = fields.Integer(dump_only=True)
     title = fields.String(required=True)
     users = fields.Nested(UserSchema, many=True)
-
 
 class RecipientListSchemas:
     """

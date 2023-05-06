@@ -1,5 +1,5 @@
-from app import db
 from enum import Enum
+from app import db
 
 
 # TODO: Divide user fields into private, public, and internal (hidden from all clients)
@@ -68,6 +68,9 @@ class User(db.Model):
         "UserRecipientList", back_populates="user"
     )
 
+    # Define 1-to-1 relation with asset
+    profile_picture = db.relationship("Asset", backref="user", uselist=False)
+
 
 class Event(db.Model):
     """
@@ -115,9 +118,10 @@ class Asset(db.Model):
     """
     Asset model (for images)
     """
-    
+
     __tablename__ = "asset"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     base_url = db.Column(db.String, nullable=False)
     salt = db.Column(db.String, nullable=False)
     extension = db.Column(db.String, nullable=False)

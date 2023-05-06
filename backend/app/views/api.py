@@ -51,7 +51,9 @@ def api_function_decorator_factory(require=None):
 
     return api_function_decorator
 
+
 default_api_function_decorator = api_function_decorator_factory()
+
 
 def extract_token(request_headers):
     """
@@ -146,7 +148,7 @@ def user_info(token):
     """
     user = user_dao.get_user_by_session_token(token)
     user_private_info = user_private_schema.dump(user)
-    
+
     return user_private_info, 200
 
 
@@ -156,9 +158,10 @@ def update_user_profile(body, token):
     """
     Updates the current user's profile information (So not all user information can be updated, just profile info)
     """
-    user_dao.update_user_profile_by_session(token, body)
+    updated_user = user_dao.update_user_profile_by_session(token, body)
+    user_private_info = user_private_schema.dump(updated_user)
 
-    return None, 204
+    return user_private_info, 200
 
 
 @api_bp.route("/users/session/", methods=["POST"])
@@ -244,6 +247,7 @@ def create_event_by_token(body, token):
 
     return event_serialized, 201
 
+
 @default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/update/", methods=["POST"])
 def update_event_by_id(event_id):
@@ -262,6 +266,7 @@ def update_event_by_id(event_id):
 
     return event_serialized, 200
 
+
 @default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/add/", methods=["POST"])
 def add_user_to_event(event_id):
@@ -270,7 +275,7 @@ def add_user_to_event(event_id):
     """
     target_user_email = request.args.get("target_email")
     session_token = extract_token(request.headers)
-    
+
     user_event = event_dao.add_user_to_event_by_email(
         session_token, event_id, target_user_email
     )
@@ -278,6 +283,7 @@ def add_user_to_event(event_id):
     event_serialized = event_schema.dump(user_event)
 
     return event_serialized, 200
+
 
 @default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/remove/", methods=["DELETE"])
@@ -290,8 +296,9 @@ def delete_user_from_event(event_id):
     event_dao.remove_user_from_event_by_email(
         session_token, event_id, target_user_email
     )
-    
+
     return None, 204
+
 
 @default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/all/", methods=["DELETE"])
@@ -301,7 +308,7 @@ def delete_all_recipients_from_event(event_id):
     """
     session_token = extract_token(request.headers)
     event_dao.remove_all_recipients_from_event(session_token, event_id)
-    
+
     return None, 204
 
 
