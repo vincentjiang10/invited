@@ -83,11 +83,11 @@ class EventMakerViewController: UIViewController {
         eventNameField.textAlignment = .left
         eventNameField.backgroundColor = UIColor.white
         eventNameField.font = UIFont.systemFont(ofSize: 14)
-        eventStartDateField.placeholder = "When does it start? (MM/DD/YY)"
+        eventStartDateField.placeholder = "When does it start? (YYYY-MM-DDT__:__:__)"
         eventStartDateField.textAlignment = .left
         eventStartDateField.backgroundColor = UIColor.white
         eventStartDateField.font = UIFont.systemFont(ofSize: 14)
-        eventEndDateField.placeholder = "When does it end? (MM/DD/YY)"
+        eventEndDateField.placeholder = "When does it end? (YYYY-MM-DDT__:__:__)"
         eventEndDateField.textAlignment = .left
         eventEndDateField.backgroundColor = UIColor.white
         eventEndDateField.font = UIFont.systemFont(ofSize: 14)
@@ -281,15 +281,11 @@ class EventMakerViewController: UIViewController {
         // uipicker view for dropdown menu
     }
     func isValidDateFormat(_ dateString: String) -> Bool {
-        let dateFormat = "MM/dd/yy'T'HH:mm:ss"
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = dateFormat
-        
-        if let date = dateFormatter.date(from: dateString) {
-            return true
-        } else {
-            return false
-        }
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return dateFormatter.date(from: dateString) != nil
     }
     
     func isPublicOrPrivate(_ accessString: String) -> Bool {
