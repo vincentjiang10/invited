@@ -2,6 +2,9 @@ from app import db
 from enum import Enum
 
 
+# TODO: Divide user fields into private, public, and internal (hidden from all clients)
+
+
 # -------------------------- Associations --------------------------#
 class UserRecipientList(db.Model):
     """

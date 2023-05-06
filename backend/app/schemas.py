@@ -3,6 +3,7 @@ from marshmallow_enum import EnumField
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from app.models import User, Event, RecipientList
 
+
 class UserSchema(SQLAlchemyAutoSchema):
     """
     A Marshmallow schema that is used to validate input data and serialize/deserialize
@@ -14,15 +15,48 @@ class UserSchema(SQLAlchemyAutoSchema):
         # Set to true so that we will not create a new instance of a model
         # when there is a matching existing one (In the case of updates)
         load_instance = True
+        exclude = []
 
     id = fields.Integer(dump_only=True)
-    first_name = fields.String(required=True, load_only=True)
-    last_name = fields.String(required=True, load_only=True)
-    email = fields.String(required=True, load_only=True)
+    first_name = fields.String(required=True)
+    last_name = fields.String(required=True)
+    email = fields.String(required=True)
     password_digest = fields.Raw(required=True, load_only=True)
     session_token = fields.String(dump_only=True)
     session_expiration = fields.String(dump_only=True)
     update_token = fields.String(dump_only=True)
+
+
+class UserSchemas:
+    """
+    A few User schemas
+    """
+
+    _user_exclude_list = []
+    _users_exclude_list = _user_exclude_list
+    user_schema = UserSchema(exclude=_user_exclude_list)
+    users_schema = UserSchema(many=True, exclude=_users_exclude_list)
+
+    _user_private_exclude_list = [
+        "password_digest",
+        "session_token",
+        "session_expiration",
+        "update_token",
+    ]
+    _users_private_exclude_list = _user_private_exclude_list
+    user_private_schema = UserSchema(exclude=_user_private_exclude_list)
+    users_private_schema = UserSchema(many=True, exclude=_users_private_exclude_list)
+
+    # TODO: public info is the same as user private info for now
+    _user_public_exclude_list = [
+        "password_digest",
+        "session_token",
+        "session_expiration",
+        "update_token",
+    ]
+    _users_public_exclude_list = _user_public_exclude_list
+    user_public_schema = UserSchema(exclude=_user_private_exclude_list)
+    users_public_schema = UserSchema(many=True, exclude=_users_public_exclude_list)
 
 
 class EventSchema(SQLAlchemyAutoSchema):
@@ -44,6 +78,17 @@ class EventSchema(SQLAlchemyAutoSchema):
     access = EnumField(Event.Access, required=True)
 
 
+class EventSchemas:
+    """
+    A few Event schemas
+    """
+
+    _event_exclude_list = []
+    _events_exclude_list = _event_exclude_list
+    event_schema = EventSchema(exclude=_event_exclude_list)
+    events_schema = EventSchema(many=True, exclude=_events_exclude_list)
+
+
 class RecipientListSchema(SQLAlchemyAutoSchema):
     """
     A Marshmallow schema that is used to validate input data and serialize/deserialize
@@ -57,3 +102,16 @@ class RecipientListSchema(SQLAlchemyAutoSchema):
     id = fields.Integer(dump_only=True)
     title = fields.String(required=True)
     users = fields.Nested(UserSchema, many=True)
+
+
+class RecipientListSchemas:
+    """
+    A few Recipient List schemas
+    """
+
+    _recipient_list_exclude_list = []
+    _recipient_lists_exclude_list = _recipient_list_exclude_list
+    recipient_list_schema = RecipientListSchema(exclude=_recipient_list_exclude_list)
+    recipient_lists_schema = RecipientListSchema(
+        many=True, exclude=_recipient_lists_exclude_list
+    )
