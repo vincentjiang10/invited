@@ -147,7 +147,7 @@ def get_all_users():
     """
     Get all users
     """
-    users = db.session.query(User).all()
+    users = User.query.all()
 
     return users
 

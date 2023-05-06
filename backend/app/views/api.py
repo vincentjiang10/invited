@@ -1,4 +1,5 @@
 import json
+from functools import wraps
 from flask import Blueprint, request
 from app.views import success_response, failure_response
 from app.dao import event_dao, recipient_list_dao, user_dao, DaoException
@@ -21,34 +22,36 @@ users_public_schema = UserSchemas.users_public_schema
 # TODO: Add custom schemas for user session, public, and private profiles
 
 
-@api_bp.route("/")
-def hello():
+def api_function_decorator_factory(require=None):
     """
-    Default (test) endpoint
-    """
-
-    return success_response({"message": "Hurray!!"})
-
-
-@api_bp.route("/users/register/", methods=["POST"])
-def register_account():
-    """
-    Endpoint for registering an account
+    Function factory to respond to api endpoints.
+    Callback should return serialized output and status code and is in the form:
+    (S \subset {request, session_token, body}) -> serialized, code
     """
 
-    # Load request data into python dictionary
-    body = json.loads(request.data)
+    def api_function_decorator(callback):
+        @wraps(callback)
+        def api_function():
+            try:
+                args_dict = {}
+                if require is not None:
+                    for key in require:
+                        if key == "body":
+                            args_dict[key] = json.loads(request.data)
+                        elif key == "token":
+                            args_dict[key] = extract_token(request.headers)
 
-    try:
-        user = user_dao.create_user(body)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
+                # Unpack resulting tuple from callback
+                return success_response(*callback(**args_dict))
 
-    # Serialize user
-    user_serialized = user_schema.dump(user)
+            except DaoException as exc:
+                return failure_response(exc.message, exc.code)
 
-    return success_response(user_serialized, 201)
+        return api_function
 
+    return api_function_decorator
+
+default_api_function_decorator = api_function_decorator_factory()
 
 def extract_token(request_headers):
     """
@@ -60,116 +63,114 @@ def extract_token(request_headers):
     bearer_token = auth_header.replace("Bearer", "").strip()
     if not bearer_token:
         raise DaoException("Invalid auth header")
+
     return bearer_token
 
 
-@api_bp.route("/users/login/", methods=["POST"])
-def login():
+@api_bp.route("/")
+def hello():
     """
-    Endpoint for logging a user in using username and password
+    Default (test) endpoint
     """
-    body = json.loads(request.data)
 
-    try:
-        user = user_dao.verify_credentials(body)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
+    return success_response({"message": "Hurray!!"})
 
+
+@api_bp.route("/users/register/", methods=["POST"])
+@api_function_decorator_factory(require=["body"])
+def register_account(body):
+    """
+    Endpoint for registering an account
+    """
+    user = user_dao.create_user(body)
     # Serialize user
     user_serialized = user_schema.dump(user)
 
-    return success_response(user_serialized)
+    return user_serialized, 201
+
+
+@api_bp.route("/users/login/", methods=["POST"])
+@api_function_decorator_factory(require=["body"])
+def login(body):
+    """
+    Endpoint for logging a user in using username and password
+    """
+    user = user_dao.verify_credentials(body)
+    # Serialize user
+    user_serialized = user_schema.dump(user)
+
+    return user_serialized, 200
 
 
 @api_bp.route("/users/logout/", methods=["POST"])
-def logout():
+@api_function_decorator_factory(require=["token"])
+def logout(token):
     """
     Endpoint for logging a user out using username and password
     """
-    try:
-        session_token = extract_token(request.headers)
-        _ = user_dao.get_user_by_session_token(session_token, expire_session=True)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
+    _ = user_dao.get_user_by_session_token(token, expire_session=True)
 
-    return success_response({"message": "Successfully logged out"})
+    return {"message": "Successfully logged out"}, 200
 
 
-@api_bp.route("/users/public/profile/")
+@api_bp.route("/users/public/profiles/")
+@default_api_function_decorator
 def public_user_profiles():
     """
     Endpoint for getting all public user profiles
     """
-    try:
-        all_users = user_dao.get_all_users
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
+    all_users = user_dao.get_all_users()
     users_public_profiles = users_public_schema.dump(all_users)
-    return success_response(users_public_profiles)
+
+    return users_public_profiles, 200
 
 
-@api_bp.route("/users/<int:user_id>/public/profile")
+# Note: order of decorators matter
+@default_api_function_decorator
+@api_bp.route("/users/<int:user_id>/public/profiles/")
 def public_user_profile(user_id):
     """
     Endpoint for getting single user public profile info (can include additional info may not have)
     """
-    try:
-        user = user_dao.get_user_by_id(user_id)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
+    user = user_dao.get_user_by_id(user_id)
     user_public_profile = user_public_schema.dump(user)
-    return success_response(user_public_profile)
+
+    return user_public_profile, 200
 
 
-@api_bp.route("/users/profile/")
-def user_info():
+@api_bp.route("/users/profiles/")
+@api_function_decorator_factory(require=["token"])
+def user_info(token):
     """
     Endpoint for getting user private profile info
     """
-    try:
-        session_token = extract_token(request.headers)
-        user = user_dao.get_user_by_session_token(session_token)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
+    user = user_dao.get_user_by_session_token(token)
     user_private_info = user_private_schema.dump(user)
-    return success_response(user_private_info)
+    
+    return user_private_info, 200
 
 
-@api_bp.route("/users/profile/", methods=["POST"])
-def update_user_profile():
+@api_bp.route("/users/profiles/", methods=["POST"])
+@api_function_decorator_factory(require=["body", "token"])
+def update_user_profile(body, token):
     """
     Updates the current user's profile information (So not all user information can be updated, just profile info)
     """
-    body = json.loads(request.data)
+    user_dao.update_user_profile_by_session(token, body)
 
-    try:
-        session_token = extract_token(request.headers)
-
-        user_dao.update_user_profile_by_session(session_token, body)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
-    return success_response(None, 204)
+    return None, 204
 
 
 @api_bp.route("/users/session/", methods=["POST"])
-def update_session():
+@api_function_decorator_factory(require=["token"])
+def update_session(token):
     """
     Endpoint for updating a user's session
     """
-    try:
-        update_token = extract_token(request.headers)
-
-        user = user_dao.get_user_by_update_token(update_token, renew_session=True)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
+    user = user_dao.get_user_by_update_token(token, renew_session=True)
     user_serialized = user_schema.dump(user)
 
-    return success_response(user_serialized)
+    return user_serialized, 200
 
 
 # ------------------------- User Events ---------------------------#
@@ -178,186 +179,142 @@ events_schema = EventSchemas.events_schema
 
 
 @api_bp.route("/events/public/to/users/")
+@default_api_function_decorator
 def get_user_to_public_events():
     """
     Endpoint for getting all public events
     """
-    try:
-        public_events = event_dao.get_all_public_events()
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
-    # Serialization
+    public_events = event_dao.get_all_public_events()
     events_serialized = events_schema.dump(public_events)
-
-    return success_response(events_serialized, 200)
+    return events_serialized, 200
 
 
 @api_bp.route("/events/from/users/")
-def get_events_created_by_user():
+@api_function_decorator_factory(require=["token"])
+def get_events_created_by_user(token):
     """
     Endpoint for getting all events that has been created by the current user
     """
-    try:
-        # Get token
-        session_token = extract_token(request.headers)
-
-        # Get events
-        events = event_dao.get_events_from_user_by_session(session_token)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
+    # Get events
+    events = event_dao.get_events_from_user_by_session(token)
     # Serialization
     events_serialized = events_schema.dump(events)
 
-    return success_response(events_serialized, 200)
+    return events_serialized, 200
 
 
 @api_bp.route("/events/to/users/")
-def get_events_invited_to_user():
+@api_function_decorator_factory(require=["token"])
+def get_events_invited_to_user(token):
     """
     Endpoint for getting all events that has been received by the current user
     """
-    try:
-        session_token = extract_token(request.headers)
-        # Private events invited to user
-        events = event_dao.get_events_to_user_by_session(session_token)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
+    # Private events invited to user
+    events = event_dao.get_events_to_user_by_session(token)
     events_serialized = events_schema.dump(events)
 
-    return success_response(events_serialized, 200)
+    return events_serialized, 200
 
 
 # TODO: Delete this later
 @api_bp.route("/events/from/users/anonymized/", methods=["POST"])
-def create_anonymized_public_event():
+@api_function_decorator_factory(require=["body"])
+def create_anonymized_public_event(body):
     """
     Endpoint for creating an anonymized event
     """
-    body = json.loads(request.data)
-
-    try:
-        created_event = event_dao.create_anonymized_event(body)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
+    created_event = event_dao.create_anonymized_event(body)
 
     # Serialize event
     event_serialized = event_schema.dump(created_event)
 
-    return success_response(event_serialized, 201)
+    return event_serialized, 201
 
 
 @api_bp.route("/events/from/users/", methods=["POST"])
-def create_event_by_token():
+@api_function_decorator_factory(require=["body", "token"])
+def create_event_by_token(body, token):
     """
     Endpoint for creating an event by the current user
     """
-    body = json.loads(request.data)
-
-    try:
-        session_token = extract_token(request.headers)
-
-        created_event = event_dao.create_event_by_session(session_token, body)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
+    session_token = token
+    created_event = event_dao.create_event_by_session(session_token, body)
     # Serialize event
     event_serialized = event_schema.dump(created_event)
 
-    return success_response(event_serialized, 201)
+    return event_serialized, 201
 
-
+@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/update/", methods=["POST"])
 def update_event_by_id(event_id):
     """
     Endpoint for modifying an event by id
     """
     body = json.loads(request.data)
+    session_token = extract_token(request.headers)
 
-    try:
-        session_token = extract_token(request.headers)
-
-        updated_event = event_dao.update_event_from_user_by_session(
-            session_token, event_id, body
-        )
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
+    updated_event = event_dao.update_event_from_user_by_session(
+        session_token, event_id, body
+    )
 
     # Serialize event
     event_serialized = event_schema.dump(updated_event)
 
-    return success_response(event_serialized, 200)
+    return event_serialized, 200
 
-
+@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/add/", methods=["POST"])
 def add_user_to_event(event_id):
     """
     Endpoint for adding a user to an event by email
     """
     target_user_email = request.args.get("target_email")
-
-    try:
-        session_token = extract_token(request.headers)
-        user_event = event_dao.add_user_to_event_by_email(
-            session_token, event_id, target_user_email
-        )
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
+    session_token = extract_token(request.headers)
+    
+    user_event = event_dao.add_user_to_event_by_email(
+        session_token, event_id, target_user_email
+    )
 
     event_serialized = event_schema.dump(user_event)
 
-    return success_response(event_serialized, 200)
+    return event_serialized, 200
 
-
+@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/remove/", methods=["DELETE"])
 def delete_user_from_event(event_id):
     """
     Endpoint for removing a user from an event by email
     """
     target_user_email = request.args.get("target_email")
+    session_token = extract_token(request.headers)
+    event_dao.remove_user_from_event_by_email(
+        session_token, event_id, target_user_email
+    )
+    
+    return None, 204
 
-    try:
-        session_token = extract_token(request.headers)
-
-        event_dao.remove_user_from_event_by_email(
-            session_token, event_id, target_user_email
-        )
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
-    return success_response(None, 204)
-
-
+@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/all/", methods=["DELETE"])
 def delete_all_recipients_from_event(event_id):
     """
     Endpoint for removing all recipients from an event
     """
-    try:
-        session_token = extract_token(request.headers)
-
-        event_dao.remove_all_recipients_from_event(session_token, event_id)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
-    return success_response(None, 204)
+    session_token = extract_token(request.headers)
+    event_dao.remove_all_recipients_from_event(session_token, event_id)
+    
+    return None, 204
 
 
+@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/", methods=["DELETE"])
 def delete_event_from_user_by_session(event_id):
     """
     Delete an event from the current user
     """
-    try:
-        session_token = extract_token(request.headers)
+    session_token = extract_token(request.headers)
+    event_dao.remove_event_by_session(session_token, event_id)
 
-        event_dao.remove_event_by_session(session_token, event_id)
-    except DaoException as exc:
-        return failure_response(exc.message, exc.code)
-
-    return success_response(None, 204)
+    return None, 204
 
 
 # ----------------------------- Recipient Lists -----------------------------#
