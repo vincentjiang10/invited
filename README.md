@@ -23,6 +23,16 @@
 
 ## Frontend
 
+- We added multiple ViewControllers alongside the main VC: ProfileViewController (PVC), EventDetailViewController (EDVC), EventMakerViewController (EMVC). 
+- The PVC shows a screen where the user can write their name and email, which gets saved within the app through UserDefaults. Though initially it used delegation to change the main VC's title to also show the User's name, we lated changed to using persistence and UserDefaults. There's email validation on the frontend side as users cannot write out a random set of chars and pass it off as an email. 
+- The EDVC displays data from a `tableviewcell` from the tableview in the main VC and the screen presents all the information about the event. The user can also exit out of any VC that is not the main VC. 
+- The EMVC allows the user to create an event itself. Currently, we only support public events; users writing anything other than PUBLIC or PRIVATE will be shown an alert. Another alert is also shown in the EMVC if the start and end timing are written in an incorrect format. 
+- When making the event, it does a POST and once created, the EMVC is exited and the main VC is shown. The user can refresh the tableview and see the event they made. 
+- The main tableview itself uses GET to show all public events. 
+- In terms of filtering, we have public and created events implemented such that the public events filter, when selected, shows all public events and the created events filter, when selected, shows all the events the user created. 
+- We also have a `searchbar` that filters through the event names and can be used alongside the filters from the `collectionview`. 
+- Our `networkmanager` is connected to the backend API, to reiterate again!
+
 ## Backend
 
 # A list of how your app addresses each of the requirements
