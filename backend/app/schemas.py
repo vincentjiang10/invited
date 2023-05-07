@@ -9,20 +9,36 @@ class AssetSchema(SQLAlchemyAutoSchema):
     A Marshmallow schema that is used to validate input data and serialize/deserialize
     instances of the Asset SQLAlchemy model.
     """
-    
+
     class Meta:
         model = Asset
         load_instance = True
-    
+
     id = fields.Integer(dump_only=True)
-    user_id = fields.Integer()
-    base_url = fields.String()
-    salt = fields.String()
-    extension = fields.String()
-    width = fields.String()
-    height = fields.String()
+    user_id = fields.Integer(required=True, load_only=True)
+    base_url = fields.String(required=True, load_only=True)
+    salt = fields.String(required=True, load_only=True)
+    extension = fields.String(required=True, load_only=True)
+    width = fields.Integer(required=True, load_only=True)
+    height = fields.Integer(required=True, load_only=True)
     creation_date = fields.DateTime(required=True)
-    
+
+    def dump(self, asset_obj_collection, many=None):
+        if many:
+            return [self.dump(asset_obj) for asset_obj in asset_obj_collection]
+
+        # Singular
+        asset_obj = asset_obj_collection
+        # Get the default serialization result
+        result = super().dump(asset_obj)
+        # Add additional field to a custom string format
+        result[
+            "image_url"
+        ] = f"{asset_obj.base_url}/{asset_obj.salt}.{asset_obj.extension}"
+
+        return result
+
+
 class AssetSchemas:
     """
     A few Asset schemas
@@ -31,11 +47,9 @@ class AssetSchemas:
     _asset_exclude_list = []
     _assets_exclude_list = _asset_exclude_list
     asset_schema = AssetSchema(exclude=_asset_exclude_list)
-    assets_schema = AssetSchema(
-        many=True, exclude=_assets_exclude_list
-    )
-    
-    
+    assets_schema = AssetSchema(many=True, exclude=_assets_exclude_list)
+
+
 class UserSchema(SQLAlchemyAutoSchema):
     """
     A Marshmallow schema that is used to validate input data and serialize/deserialize
@@ -59,14 +73,13 @@ class UserSchema(SQLAlchemyAutoSchema):
     update_token = fields.String(dump_only=True)
     profile_picture = fields.Nested(AssetSchema, only=["id", "base_url", "extension"])
 
+
 class UserSchemas:
     """
     A few User schemas
     """
 
-    _user_exclude_list = [
-        "profile_picture"
-    ]
+    _user_exclude_list = ["profile_picture"]
     _users_exclude_list = _user_exclude_list
     user_schema = UserSchema(exclude=_user_exclude_list)
     users_schema = UserSchema(many=True, exclude=_users_exclude_list)
@@ -109,6 +122,7 @@ class EventSchema(SQLAlchemyAutoSchema):
     description = fields.String(required=True)
     access = EnumField(Event.Access, required=True)
 
+
 class EventSchemas:
     """
     A few Event schemas
@@ -133,6 +147,7 @@ class RecipientListSchema(SQLAlchemyAutoSchema):
     id = fields.Integer(dump_only=True)
     title = fields.String(required=True)
     users = fields.Nested(UserSchema, many=True)
+
 
 class RecipientListSchemas:
     """

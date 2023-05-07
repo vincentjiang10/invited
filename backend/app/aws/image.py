@@ -7,7 +7,7 @@ from PIL import Image
 import random
 import re
 import string
-from . import S3_BASE_URL, aws
+from . import S3_BASE_URL, AwsException, aws
 
 EXTENSIONS = ["png", "gif", "jpg", "jpeg"]
 
@@ -20,12 +20,13 @@ def store_image_data(image_data):
     3. Attempts to decode and upload image data to AWS
     Returns dictionary to be used to add an image entry to database
     """
+
     try:
         extension = guess_extension(guess_type(image_data)[0])[1:]
 
         # Only accept supported extensions
         if extension not in EXTENSIONS:
-            raise Exception(f"Extension {extension} is not supported")
+            raise AwsException(f"Extension {extension} is not supported")
 
         # Random string name
         salt = "".join(
@@ -38,7 +39,7 @@ def store_image_data(image_data):
         # Remove base64 header to extract data
         image_string = re.sub("^data:image/.+;base64,", "", image_data)
         image_data = base64.b64decode(image_string)
-        image = Image(BytesIO(image_data))
+        image = Image.open(BytesIO(image_data))
         image_filename = f"{salt}.{extension}"
 
         # Upload to aws
@@ -51,7 +52,7 @@ def store_image_data(image_data):
             "extension": extension,
             "width": image.width,
             "height": image.height,
-            "creation_date": dt.now(),
+            "creation_date": dt.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
     except Exception as exc:
-        print(f"Error while creating image: {exc}")
+        raise AwsException(f"Error while creating image: {exc}") from exc
