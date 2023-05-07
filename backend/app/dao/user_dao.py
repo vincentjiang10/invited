@@ -8,10 +8,12 @@ from app.auth import (
     new_session_time,
     encrypt_password,
 )
-from app.schemas import UserSchemas
+from app.schemas import UserSchemas, AssetSchemas
+from app.aws.image import store_image_data
 
-# Initialize schema object
+# Initialize schema objects
 user_schema = UserSchemas.user_schema
+asset_schema = AssetSchemas.asset_schema
 
 
 def _expire_session(user):
@@ -161,14 +163,42 @@ def update_user_profile_by_session(session_token, body):
     try:
         user = get_user_by_session_token(session_token)
 
+        # Image upload logic
+        image_data = body.get("profile_picture")
+        if image_data is not None:
+            # TODO: Take into account the case of image update
+            # Check whether user currently has an image (If yes, then remove that image at the end, if everything else is a success)
+            current_profile_image = user.profile_picture
+
+            # Create new image through the store_image_data() method in aws.image
+            new_image_body = store_image_data(image_data)
+
+            print("\033[91m{}\033[00m".format(new_image_body))
+
+            new_image = asset_schema.load(
+                new_image_body, unknown=EXCLUDE, partial=True, session=db.session
+            )
+
+            # Overwrite public_profile of current user with new image
+            user.profile_picture = new_image
+
+            # Add new image to database
+            db.session.add(new_image)
+
+            # Delete original profile image
+            if current_profile_image is not None:
+                db.session.delete(current_profile_image)
+
         # TODO: prevent update of some fields! (session_token, etc)
-        _ = user_schema.load(
+        updated_user = user_schema.load(
             body, unknown=EXCLUDE, instance=user, partial=True, session=db.session
         )
     except ValidationError as exc:
         raise DaoException(str(exc)) from exc
 
     db.session.commit()
+
+    return updated_user
 
 
 def verify_credentials(body):

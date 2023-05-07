@@ -1,7 +1,53 @@
 from marshmallow import fields
 from marshmallow_enum import EnumField
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from app.models import User, Event, RecipientList
+from app.models import User, Event, RecipientList, Asset
+
+
+class AssetSchema(SQLAlchemyAutoSchema):
+    """
+    A Marshmallow schema that is used to validate input data and serialize/deserialize
+    instances of the Asset SQLAlchemy model.
+    """
+
+    class Meta:
+        model = Asset
+        load_instance = True
+
+    id = fields.Integer(dump_only=True)
+    user_id = fields.Integer(required=True, load_only=True)
+    base_url = fields.String(required=True, load_only=True)
+    salt = fields.String(required=True, load_only=True)
+    extension = fields.String(required=True, load_only=True)
+    width = fields.Integer(required=True, load_only=True)
+    height = fields.Integer(required=True, load_only=True)
+    creation_date = fields.DateTime(required=True)
+
+    def dump(self, asset_obj_collection, many=None):
+        if many:
+            return [self.dump(asset_obj) for asset_obj in asset_obj_collection]
+
+        # Singular
+        asset_obj = asset_obj_collection
+        # Get the default serialization result
+        result = super().dump(asset_obj)
+        # Add additional field to a custom string format
+        result[
+            "image_url"
+        ] = f"{asset_obj.base_url}/{asset_obj.salt}.{asset_obj.extension}"
+
+        return result
+
+
+class AssetSchemas:
+    """
+    A few Asset schemas
+    """
+
+    _asset_exclude_list = []
+    _assets_exclude_list = _asset_exclude_list
+    asset_schema = AssetSchema(exclude=_asset_exclude_list)
+    assets_schema = AssetSchema(many=True, exclude=_assets_exclude_list)
 
 
 class UserSchema(SQLAlchemyAutoSchema):
@@ -25,6 +71,7 @@ class UserSchema(SQLAlchemyAutoSchema):
     session_token = fields.String(dump_only=True)
     session_expiration = fields.String(dump_only=True)
     update_token = fields.String(dump_only=True)
+    profile_picture = fields.Nested(AssetSchema, only=["id", "base_url", "extension"])
 
 
 class UserSchemas:
@@ -32,13 +79,12 @@ class UserSchemas:
     A few User schemas
     """
 
-    _user_exclude_list = []
+    _user_exclude_list = ["profile_picture"]
     _users_exclude_list = _user_exclude_list
     user_schema = UserSchema(exclude=_user_exclude_list)
     users_schema = UserSchema(many=True, exclude=_users_exclude_list)
 
     _user_private_exclude_list = [
-        "password_digest",
         "session_token",
         "session_expiration",
         "update_token",
@@ -49,7 +95,6 @@ class UserSchemas:
 
     # TODO: public info is the same as user private info for now
     _user_public_exclude_list = [
-        "password_digest",
         "session_token",
         "session_expiration",
         "update_token",
