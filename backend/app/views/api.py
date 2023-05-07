@@ -26,23 +26,25 @@ def api_function_decorator_factory(require=None):
     """
     Function factory to respond to api endpoints.
     Callback should return serialized output and status code and is in the form:
-    (S \subset {request, session_token, body}) -> serialized, code
+    {flask_args, require} -> serialized, code
     """
 
     def api_function_decorator(callback):
         @wraps(callback)
-        def api_function():
+        
+        # We return an api function that dynamically add to kwargs
+        def api_function(*args, **kwargs):
             try:
-                args_dict = {}
+                # Add to kwargs
                 if require is not None:
                     for key in require:
                         if key == "body":
-                            args_dict[key] = json.loads(request.data)
+                            kwargs[key] = json.loads(request.data)
                         elif key == "token":
-                            args_dict[key] = extract_token(request.headers)
+                            kwargs[key] = extract_token(request.headers)
 
                 # Unpack resulting tuple from callback
-                return success_response(*callback(**args_dict))
+                return success_response(*callback(*args, **kwargs))
 
             except DaoException as exc:
                 return failure_response(exc.message, exc.code)
@@ -52,6 +54,7 @@ def api_function_decorator_factory(require=None):
     return api_function_decorator
 
 
+# Define default api function decorator
 default_api_function_decorator = api_function_decorator_factory()
 
 
@@ -128,8 +131,8 @@ def public_user_profiles():
 
 
 # Note: order of decorators matter
-@default_api_function_decorator
 @api_bp.route("/users/<int:user_id>/public/profiles/")
+@default_api_function_decorator
 def public_user_profile(user_id):
     """
     Endpoint for getting single user public profile info (can include additional info may not have)
@@ -248,8 +251,8 @@ def create_event_by_token(body, token):
     return event_serialized, 201
 
 
-@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/update/", methods=["POST"])
+@default_api_function_decorator
 def update_event_by_id(event_id):
     """
     Endpoint for modifying an event by id
@@ -267,8 +270,8 @@ def update_event_by_id(event_id):
     return event_serialized, 200
 
 
-@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/add/", methods=["POST"])
+@default_api_function_decorator
 def add_user_to_event(event_id):
     """
     Endpoint for adding a user to an event by email
@@ -285,8 +288,8 @@ def add_user_to_event(event_id):
     return event_serialized, 200
 
 
-@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/remove/", methods=["DELETE"])
+@default_api_function_decorator
 def delete_user_from_event(event_id):
     """
     Endpoint for removing a user from an event by email
@@ -300,8 +303,8 @@ def delete_user_from_event(event_id):
     return None, 204
 
 
-@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/all/", methods=["DELETE"])
+@default_api_function_decorator
 def delete_all_recipients_from_event(event_id):
     """
     Endpoint for removing all recipients from an event
@@ -312,8 +315,8 @@ def delete_all_recipients_from_event(event_id):
     return None, 204
 
 
-@default_api_function_decorator
 @api_bp.route("/events/<int:event_id>/from/users/", methods=["DELETE"])
+@default_api_function_decorator
 def delete_event_from_user_by_session(event_id):
     """
     Delete an event from the current user
