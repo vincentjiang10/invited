@@ -39,9 +39,9 @@ def api_function_decorator_factory(require=None):
                 if require is not None:
                     for key in require:
                         if key == "BODY":
-                            kwargs[key] = json.loads(request.data)
+                            kwargs["body"] = json.loads(request.data)
                         elif key == "TOKEN":
-                            kwargs[key] = extract_token(request.headers)
+                            kwargs["token"] = extract_token(request.headers)
 
                 # Unpack resulting tuple from callback
                 return success_response(*callback(*args, **kwargs))
