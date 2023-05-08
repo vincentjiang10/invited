@@ -1,5 +1,3 @@
-# apdev-final-project
-
 # INVITED!
 
 # Want to invite any of your friends to an event? Simply create an event and invite them through Invited!
