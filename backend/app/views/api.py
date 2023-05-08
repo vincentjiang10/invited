@@ -31,16 +31,16 @@ def api_function_decorator_factory(require=None):
 
     def api_function_decorator(callback):
         @wraps(callback)
-        
+
         # We return an api function that dynamically add to kwargs
         def api_function(*args, **kwargs):
             try:
                 # Add to kwargs
                 if require is not None:
                     for key in require:
-                        if key == "body":
+                        if key == "BODY":
                             kwargs[key] = json.loads(request.data)
-                        elif key == "token":
+                        elif key == "TOKEN":
                             kwargs[key] = extract_token(request.headers)
 
                 # Unpack resulting tuple from callback
@@ -82,7 +82,7 @@ def hello():
 
 
 @api_bp.route("/users/register/", methods=["POST"])
-@api_function_decorator_factory(require=["body"])
+@api_function_decorator_factory(require=["BODY"])
 def register_account(body):
     """
     Endpoint for registering an account
@@ -95,7 +95,7 @@ def register_account(body):
 
 
 @api_bp.route("/users/login/", methods=["POST"])
-@api_function_decorator_factory(require=["body"])
+@api_function_decorator_factory(require=["BODY"])
 def login(body):
     """
     Endpoint for logging a user in using username and password
@@ -108,7 +108,7 @@ def login(body):
 
 
 @api_bp.route("/users/logout/", methods=["POST"])
-@api_function_decorator_factory(require=["token"])
+@api_function_decorator_factory(require=["TOKEN"])
 def logout(token):
     """
     Endpoint for logging a user out using username and password
@@ -144,7 +144,7 @@ def public_user_profile(user_id):
 
 
 @api_bp.route("/users/profiles/")
-@api_function_decorator_factory(require=["token"])
+@api_function_decorator_factory(require=["TOKEN"])
 def user_info(token):
     """
     Endpoint for getting user private profile info
@@ -156,7 +156,7 @@ def user_info(token):
 
 
 @api_bp.route("/users/profiles/", methods=["POST"])
-@api_function_decorator_factory(require=["body", "token"])
+@api_function_decorator_factory(require=["BODY", "TOKEN"])
 def update_user_profile(body, token):
     """
     Updates the current user's profile information (So not all user information can be updated, just profile info)
@@ -168,7 +168,7 @@ def update_user_profile(body, token):
 
 
 @api_bp.route("/users/session/", methods=["POST"])
-@api_function_decorator_factory(require=["token"])
+@api_function_decorator_factory(require=["TOKEN"])
 def update_session(token):
     """
     Endpoint for updating a user's session
@@ -196,7 +196,7 @@ def get_user_to_public_events():
 
 
 @api_bp.route("/events/from/users/")
-@api_function_decorator_factory(require=["token"])
+@api_function_decorator_factory(require=["TOKEN"])
 def get_events_created_by_user(token):
     """
     Endpoint for getting all events that has been created by the current user
@@ -210,7 +210,7 @@ def get_events_created_by_user(token):
 
 
 @api_bp.route("/events/to/users/")
-@api_function_decorator_factory(require=["token"])
+@api_function_decorator_factory(require=["TOKEN"])
 def get_events_invited_to_user(token):
     """
     Endpoint for getting all events that has been received by the current user
@@ -224,7 +224,7 @@ def get_events_invited_to_user(token):
 
 # TODO: Delete this later
 @api_bp.route("/events/from/users/anonymized/", methods=["POST"])
-@api_function_decorator_factory(require=["body"])
+@api_function_decorator_factory(require=["BODY"])
 def create_anonymized_public_event(body):
     """
     Endpoint for creating an anonymized event
@@ -238,13 +238,13 @@ def create_anonymized_public_event(body):
 
 
 @api_bp.route("/events/from/users/", methods=["POST"])
-@api_function_decorator_factory(require=["body", "token"])
+@api_function_decorator_factory(require=["BODY", "TOKEN"])
 def create_event_by_token(body, token):
     """
     Endpoint for creating an event by the current user
     """
-    session_token = token
-    created_event = event_dao.create_event_by_session(session_token, body)
+
+    created_event = event_dao.create_event_by_session(token, body)
     # Serialize event
     event_serialized = event_schema.dump(created_event)
 
@@ -252,17 +252,13 @@ def create_event_by_token(body, token):
 
 
 @api_bp.route("/events/<int:event_id>/from/users/update/", methods=["POST"])
-@default_api_function_decorator
-def update_event_by_id(event_id):
+@api_function_decorator_factory(require=["BODY", "TOKEN"])
+def update_event_by_id(event_id, body, token):
     """
     Endpoint for modifying an event by id
     """
-    body = json.loads(request.data)
-    session_token = extract_token(request.headers)
 
-    updated_event = event_dao.update_event_from_user_by_session(
-        session_token, event_id, body
-    )
+    updated_event = event_dao.update_event_from_user_by_session(token, event_id, body)
 
     # Serialize event
     event_serialized = event_schema.dump(updated_event)
@@ -271,16 +267,15 @@ def update_event_by_id(event_id):
 
 
 @api_bp.route("/events/<int:event_id>/from/users/add/", methods=["POST"])
-@default_api_function_decorator
-def add_user_to_event(event_id):
+@api_function_decorator_factory(require=["TOKEN"])
+def add_user_to_event(event_id, token):
     """
     Endpoint for adding a user to an event by email
     """
     target_user_email = request.args.get("target_email")
-    session_token = extract_token(request.headers)
 
     user_event = event_dao.add_user_to_event_by_email(
-        session_token, event_id, target_user_email
+        token, event_id, target_user_email
     )
 
     event_serialized = event_schema.dump(user_event)
@@ -289,40 +284,35 @@ def add_user_to_event(event_id):
 
 
 @api_bp.route("/events/<int:event_id>/from/users/remove/", methods=["DELETE"])
-@default_api_function_decorator
-def delete_user_from_event(event_id):
+@api_function_decorator_factory(require=["TOKEN"])
+def delete_user_from_event(event_id, token):
     """
     Endpoint for removing a user from an event by email
     """
     target_user_email = request.args.get("target_email")
-    session_token = extract_token(request.headers)
-    event_dao.remove_user_from_event_by_email(
-        session_token, event_id, target_user_email
-    )
+    event_dao.remove_user_from_event_by_email(token, event_id, target_user_email)
 
     return None, 204
 
 
 @api_bp.route("/events/<int:event_id>/from/users/all/", methods=["DELETE"])
-@default_api_function_decorator
-def delete_all_recipients_from_event(event_id):
+@api_function_decorator_factory(require=["TOKEN"])
+def delete_all_recipients_from_event(event_id, token):
     """
     Endpoint for removing all recipients from an event
     """
-    session_token = extract_token(request.headers)
-    event_dao.remove_all_recipients_from_event(session_token, event_id)
+    event_dao.remove_all_recipients_from_event(token, event_id)
 
     return None, 204
 
 
 @api_bp.route("/events/<int:event_id>/from/users/", methods=["DELETE"])
-@default_api_function_decorator
-def delete_event_from_user_by_session(event_id):
+@api_function_decorator_factory(require=["TOKEN"])
+def delete_event_from_user_by_session(event_id, token):
     """
     Delete an event from the current user
     """
-    session_token = extract_token(request.headers)
-    event_dao.remove_event_by_session(session_token, event_id)
+    event_dao.remove_event_by_session(token, event_id)
 
     return None, 204
 
