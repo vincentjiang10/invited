@@ -36,7 +36,7 @@
 ## Backend
 - Implemented schemas for serialization, deserialization, and validation through Marshmallow
 - Three models (for now) through SQlAlchemy as an ORM tool: User, Event, and Asset
-  - Implemented many-to-many event between User and Event
+  - Implemented many-to-many relationship between User and Event
     - Users can either be a creator or a recipient of an event (which can be public or private)
     - Users can create multiple events and be a recipient of many events, vice versa
     - We implemented the role (creator/recipient) through an association object w.r.t. a UserEvent model
